@@ -737,7 +737,6 @@ def forgot_password():
 
     email = request.form['email']
 
-    # Check email exists
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM admin WHERE email=?", (email,))
@@ -749,24 +748,29 @@ def forgot_password():
         flash("Email not found!", "danger")
         return redirect('/forgot-password')
 
-    # Generate OTP
     otp = random.randint(100000, 999999)
 
-    # Store in session
     session['reset_email'] = email
     session['reset_otp'] = str(otp)
 
-    # Send email
-    msg = Message(
-        subject="Password Reset OTP",
-        sender=config.MAIL_USERNAME,
-        recipients=[email]
-    )
-    msg.body = f"Your OTP is: {otp}"
-    safe_send_mail(msg, otp, "ADMIN RESET OTP")
+    try:
+        msg = Message(
+            subject="Password Reset OTP",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[email]
+        )
 
-    flash("OTP generated successfully! Check server log.", "success")
-    return redirect('/verify-reset-otp')
+        msg.body = f"Your OTP is: {otp}"
+
+        mail.send(msg)
+
+        flash("OTP sent successfully to your email!", "success")
+        return redirect('/verify-reset-otp')
+
+    except Exception as e:
+        print("ADMIN RESET MAIL ERROR:", e)
+        flash("Failed to send OTP email!", "danger")
+        return redirect('/forgot-password')
 
 # VERIFY OTP ROUTE
 @app.route('/verify-reset-otp', methods=['GET', 'POST'])
