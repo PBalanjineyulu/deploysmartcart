@@ -2578,19 +2578,31 @@ def superadmin_revenue():
 #      SUPER ADMIN FORGOT PASSWORD
 #=====================================================
 
+# =========================================================
+# SUPERADMIN FORGOT PASSWORD
+# =========================================================
 @app.route('/sa-forgot-password', methods=['GET', 'POST'])
 def sa_forgot_password():
 
     if request.method == 'GET':
-        return render_template("superadmin/sa_forgot_password.html", hide_superadmin_nav=True)
+        return render_template(
+            "superadmin/sa_forgot_password.html",
+            hide_superadmin_nav=True
+        )
 
     email = request.form['email']
 
     # Check email exists
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM superadmins WHERE email=?", (email,))
+
+    cursor.execute(
+        "SELECT * FROM superadmins WHERE email=?",
+        (email,)
+    )
+
     admin = cursor.fetchone()
+
     cursor.close()
     conn.close()
 
@@ -2605,23 +2617,40 @@ def sa_forgot_password():
     session['reset_email'] = email
     session['reset_otp'] = str(otp)
 
-    # Send email
-    msg = Message(
-        subject="Password Reset OTP",
-        sender=config.MAIL_USERNAME,
-        recipients=[email]
-    )
-    msg.body = f"Your OTP is: {otp}"
-    safe_send_mail(msg, otp, "SUPERADMIN RESET OTP")
+    try:
+        # Send Email
+        msg = Message(
+            subject="Password Reset OTP",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[email]
+        )
 
-    flash("OTP generated successfully! Check server log.", "success")
+        msg.body = f"""
+SmartCart SuperAdmin Password Reset
+
+Your OTP is: {otp}
+
+Do not share this OTP with anyone.
+"""
+
+        mail.send(msg)
+
+        flash("OTP sent successfully to your email!", "success")
+
+    except Exception as e:
+        print("MAIL ERROR:", e)
+        flash("Failed to send OTP email. Please try again.", "danger")
+        return redirect('/sa-forgot-password')
+
     return redirect('/sa-verify-reset-otp')
 
+
+# =========================================================
 # VERIFY RESET OTP
+# =========================================================
 @app.route('/sa-verify-reset-otp', methods=['GET', 'POST'])
 def sa_verify_reset_otp():
 
-    # Check forgot password step completed
     if 'reset_email' not in session:
         flash("Please enter your email first!", "warning")
         return redirect('/sa-forgot-password')
@@ -2634,28 +2663,27 @@ def sa_verify_reset_otp():
 
     user_otp = request.form['otp']
 
-    # Check OTP
     if user_otp != session.get('reset_otp'):
         flash("Invalid OTP!", "danger")
         return redirect('/sa-verify-reset-otp')
 
-    # Mark OTP as verified
     session['otp_verified'] = True
 
-    flash("OTP Verified! Now reset your password.", "success")
+    flash("OTP verified successfully!", "success")
+
     return redirect('/sa-reset-password')
 
 
+# =========================================================
 # RESET PASSWORD
+# =========================================================
 @app.route('/sa-reset-password', methods=['GET', 'POST'])
 def sa_reset_password():
 
-    # 🔒 Step 1: Check email exists in session
     if 'reset_email' not in session:
         flash("Please start from forgot password!", "warning")
         return redirect('/sa-forgot-password')
 
-    # 🔒 Step 2: Check OTP verified
     if not session.get('otp_verified'):
         flash("Please verify OTP first!", "warning")
         return redirect('/sa-verify-reset-otp')
@@ -2668,29 +2696,31 @@ def sa_reset_password():
 
     new_password = request.form['password']
 
-    # ✅ Hash password (IMPORTANT FIX)
     hashed_password = bcrypt.hashpw(
         new_password.encode('utf-8'),
         bcrypt.gensalt()
     ).decode('utf-8')
 
-    # Update DB
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute(
         "UPDATE superadmins SET password=? WHERE email=?",
-        (hashed_password, session.get('reset_email'))
+        (hashed_password, session['reset_email'])
     )
+
     conn.commit()
+
     cursor.close()
     conn.close()
 
-    # 🧹 Clear session
+    # Clear session
     session.pop('reset_email', None)
     session.pop('reset_otp', None)
     session.pop('otp_verified', None)
 
     flash("Password updated successfully!", "success")
+
     return redirect('/superadmin-login')
 
 # ============================================================
