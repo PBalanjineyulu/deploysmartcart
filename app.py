@@ -682,14 +682,20 @@ def about():
 
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
+
+    if 'admin_id' not in session:
+        flash("Please login first!", "danger")
+        return redirect('/admin-login')
+
     if request.method == "POST":
+
         name = request.form["name"]
         email = request.form["email"]
         phone = request.form["phone"]
         message = request.form["message"]
 
         body = f"""
-New Message
+New Message From Admin
 
 Name: {name}
 Email: {email}
@@ -699,15 +705,32 @@ Message:
 {message}
 """
 
-        print("===================================")
-        print("ADMIN CONTACT MESSAGE")
-        print(body)
-        print("===================================")
+        try:
 
-        flash("Message sent successfully!", "success")
+            msg = Message(
+                subject="SmartCart Admin Contact",
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[SUPERADMIN_EMAIL]
+            )
+
+            msg.body = body
+
+            mail.send(msg)
+
+            flash("Message sent successfully!", "success")
+
+        except Exception as e:
+
+            print("ADMIN CONTACT MAIL ERROR:", e)
+
+            flash("Failed to send message.", "danger")
+
         return redirect(url_for("contact"))
 
-    return render_template("admin/contact.html", hide_admin_nav=True)
+    return render_template(
+        "admin/contact.html",
+        hide_admin_nav=True
+    )
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -1406,18 +1429,37 @@ def user_about():
 #  ROUTE :user- CONTACT PAGE
 #===================================
 
-@app.route("/user-contact", methods=["GET", "POST"])
-def user_contact():
+@app.route("/user-contact/<int:admin_id>", methods=["GET", "POST"])
+def user_contact(admin_id):
+
+    if 'user_id' not in session:
+        flash("Please login first!", "danger")
+        return redirect('/user-login')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT email FROM admin WHERE admin_id=?",
+        (admin_id,)
+    )
+    admin = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not admin:
+        flash("Admin not found!", "danger")
+        return redirect("/user/products")
 
     if request.method == "POST":
-
         name = request.form["name"]
         email = request.form["email"]
         phone = request.form["phone"]
         message = request.form["message"]
 
         body = f"""
-New Message
+New Message From User
 
 Name: {name}
 Email: {email}
@@ -1427,17 +1469,25 @@ Message:
 {message}
 """
 
-        print("===================================")
-        print("USER CONTACT MESSAGE")
-        print(body)
-        print("===================================")
+        try:
+            msg = Message(
+                subject="SmartCart User Contact",
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[admin['email']]
+            )
+            msg.body = body
 
-        flash("Message sent successfully!", "success")
+            mail.send(msg)
 
-        return redirect(url_for("user_contact"))
+            flash("Message sent successfully!", "success")
 
-    return render_template("user/user_contact.html")
+        except Exception as e:
+            print("USER CONTACT MAIL ERROR:", e)
+            flash("Failed to send message.", "danger")
 
+        return redirect(url_for("user_contact", admin_id=admin_id))
+
+    return render_template("user/user_contact.html", admin_id=admin_id)
 
 
 
