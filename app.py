@@ -686,11 +686,6 @@ def about():
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
 
-    # Admin login check
-    if 'admin_id' not in session:
-        flash("Please login first!", "danger")
-        return redirect('/admin-login')
-
     if request.method == "POST":
 
         name = request.form["name"]
