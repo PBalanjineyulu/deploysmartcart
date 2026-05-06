@@ -1903,16 +1903,6 @@ def shipping_address():
             flash("Address saved successfully!", "success")
             return redirect('/user/pay')
 
-    cursor.execute("SELECT * FROM addresses WHERE user_id = ?", (user_id,))
-    addresses = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return render_template("user/shipping_address.html", addresses=addresses)
-    # ============================
-    # FETCH SAVED ADDRESSES (GET)
-    # ============================
     cursor.execute(
         "SELECT * FROM addresses WHERE user_id = ? ORDER BY address_id DESC",
         (user_id,)
@@ -1922,7 +1912,7 @@ def shipping_address():
     cursor.close()
     conn.close()
 
-    return render_template('user/shipping_address.html', addresses=addresses)
+    return render_template("user/shipping_address.html", addresses=addresses)
 
 # ------------------------------
 # Route: Verify Payment and Store Order
@@ -2761,33 +2751,6 @@ def buy_now(product_id):
 
 
 
-@app.route('/user/order-success/<int:order_id>')
-def user_order_success(order_id):
-
-    if 'user_id' not in session:
-        return redirect('/user-login')
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT * FROM orders WHERE order_id = ?
-    """, (order_id,))
-    order = cursor.fetchone()
-
-    cursor.execute("""
-        SELECT * FROM order_items WHERE order_id = ?
-    """, (order_id,))
-    items = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return render_template(
-        "user/order_success.html",
-        order=order,
-        items=items
-    )
 
 @app.route('/user/delete-address/<int:address_id>')
 def delete_address(address_id):
