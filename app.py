@@ -117,7 +117,6 @@ def verify_otp_get():
 def send_admin_approval_mail(admin_id, name, email):
 
     approve_link = f"https://balanjineyuluSmartCart.pythonanywhere.com/superadmin/approve-admin/{admin_id}"
-
     reject_link = f"https://balanjineyuluSmartCart.pythonanywhere.com/superadmin/reject-admin/{admin_id}"
     message = Message(
         subject="New Admin Approval Request",
@@ -2894,7 +2893,7 @@ def admin_sales_report():
         JOIN order_items oi ON o.order_id = oi.order_id
         JOIN products p ON oi.product_id = p.product_id
         WHERE p.admin_id = ?
-        AND DATE(o.created_at) = CURDATE()
+        AND DATE(o.created_at) = DATE('now')
     """, (admin_id,))
     today = cursor.fetchone()
 
