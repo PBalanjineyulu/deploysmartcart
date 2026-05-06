@@ -1429,52 +1429,68 @@ def user_about():
 #  ROUTE :user- CONTACT PAGE
 #===================================
 
+# =========================================================
+# USER CONTACT ADMIN
+# =========================================================
 @app.route("/user-contact/<int:admin_id>", methods=["GET", "POST"])
 def user_contact(admin_id):
 
+    # User login check
     if 'user_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/user-login')
 
+    # Fetch admin details
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT email FROM admin WHERE admin_id=?",
+        "SELECT admin_id, name, email FROM admin WHERE admin_id=?",
         (admin_id,)
     )
+
     admin = cursor.fetchone()
 
     cursor.close()
     conn.close()
 
+    # Admin not found
     if not admin:
         flash("Admin not found!", "danger")
-        return redirect("/user/products")
+        return redirect('/user/products')
 
+    # POST → Send message
     if request.method == "POST":
+
         name = request.form["name"]
         email = request.form["email"]
         phone = request.form["phone"]
         message = request.form["message"]
 
         body = f"""
-New Message From User
+New Message From SmartCart User
 
+Admin Name: {admin['name']}
+
+User Details
+------------------------
 Name: {name}
 Email: {email}
 Phone: {phone}
 
-Message:
+Message
+------------------------
 {message}
 """
 
         try:
+
             msg = Message(
                 subject="SmartCart User Contact",
                 sender=app.config['MAIL_USERNAME'],
                 recipients=[admin['email']]
             )
+
             msg.body = body
 
             mail.send(msg)
@@ -1482,12 +1498,24 @@ Message:
             flash("Message sent successfully!", "success")
 
         except Exception as e:
+
             print("USER CONTACT MAIL ERROR:", e)
-            flash("Failed to send message.", "danger")
 
-        return redirect(url_for("user_contact", admin_id=admin_id))
+            flash("Failed to send message!", "danger")
 
-    return render_template("user/user_contact.html", admin_id=admin_id)
+        return redirect(
+            url_for(
+                'user_contact',
+                admin_id=admin_id
+            )
+        )
+
+    # GET → Open page
+    return render_template(
+        "user/user_contact.html",
+        admin_id=admin_id,
+        admin=admin
+    )
 
 
 
