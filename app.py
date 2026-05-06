@@ -39,7 +39,7 @@ app.config['MAIL_PASSWORD'] = config.MAIL_PASSWORD
 
 mail = Mail(app)
 # ================= EMAIL CONTROL =================
-EMAIL_ENABLED = False
+EMAIL_ENABLED = True
 
 def safe_send_mail(message, otp=None, label="MAIL"):
     if EMAIL_ENABLED:
