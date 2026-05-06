@@ -948,23 +948,16 @@ def update_order_status(order_id):
 @app.route('/user-register', methods=['GET', 'POST'])
 def user_register():
 
-    # Show form
     if request.method == "GET":
         return render_template("user/user_register.html", hide_admin_nav=True)
 
-    # POST → Process signup
     name = request.form['name']
     email = request.form['email']
 
-    # 1️⃣ Check if user email already exists
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT user_id FROM users WHERE email=?",
-        (email,)
-    )
-
+    cursor.execute("SELECT user_id FROM users WHERE email=?", (email,))
     existing_user = cursor.fetchone()
 
     cursor.close()
@@ -974,18 +967,15 @@ def user_register():
         flash("This email is already registered. Please login instead.", "danger")
         return redirect('/user-register')
 
-    # 2️⃣ Save user input temporarily in session
     session['signup_name'] = name
     session['signup_email'] = email
 
-    # 3️⃣ Generate OTP and store in session
     otp = random.randint(100000, 999999)
     session['otp'] = otp
 
-    # 4️⃣ Create Email Message
     message = Message(
         subject="SmartCart User OTP",
-        sender=config.MAIL_USERNAME,
+        sender=app.config['MAIL_USERNAME'],
         recipients=[email]
     )
 
@@ -1002,27 +992,21 @@ Thank You,
 SmartCart Team
 """
 
-    # ❌ Disabled on PythonAnywhere free plan
-    # mail.send(message)
+    try:
+        mail.send(message)
+        flash("OTP sent successfully to your email!", "success")
+        return redirect('/user-verify-otp')
 
-    # # ✅ Print OTP in server log instead
-    # print("===================================")
-    # print("USER REGISTER OTP:", otp)
-    # print("===================================")
-
-    # flash("OTP generated successfully! Contact admin for OTP or check server logs.", "success")
-
-    # return redirect('/user-verify-otp')
-    safe_send_mail(message, otp, "USER REGISTER OTP")
-
-    flash("OTP generated successfully!", "success")
-
-    return redirect('/user-verify-otp')
+    except Exception as e:
+        print("MAIL ERROR:", e)
+        flash("Failed to send OTP email. PythonAnywhere may be blocking SMTP.", "danger")
+        return redirect('/user-register')
 
 
 @app.route('/user-verify-otp', methods=['GET'])
 def user_verify_otp_get():
     return render_template("user/user_verify_otp.html")
+
 
 # admin-VERIFY Route
 
