@@ -1,0 +1,229 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}Contact | SmartCart{% endblock %}
+
+{% block css %}
+<style>
+
+/* 🔥 GRADIENT BACKGROUND */
+.contact-section {
+    padding: 70px 0;
+    background: linear-gradient(-45deg, #0f172a, #1e3a8a, #2563eb, #0ea5e9);
+    background-size: 400% 400%;
+    animation: gradientBG 12s ease infinite;
+}
+
+/* ANIMATION */
+@keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+}
+
+/* CARD */
+.contact-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(14px);
+    border-radius: 22px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+    animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+    from {opacity:0; transform: translateY(20px);}
+    to {opacity:1; transform: translateY(0);}
+}
+
+/* HEADER */
+.contact-header {
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+/* BODY */
+.contact-body {
+    padding: 30px;
+}
+
+/* FLOATING INPUT */
+.form-group {
+    position: relative;
+}
+
+.form-control {
+    height: 50px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    padding: 12px;
+    transition: 0.3s;
+}
+
+textarea.form-control {
+    height: 120px;
+}
+
+/* LABEL ANIMATION */
+.form-group label {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    background: white;
+    padding: 0 5px;
+    color: #64748b;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.form-control:focus + label,
+.form-control:not(:placeholder-shown) + label {
+    top: -8px;
+    font-size: 12px;
+    color: #2563eb;
+}
+
+/* INPUT FOCUS EFFECT */
+.form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37,99,235,0.15);
+}
+
+/* BUTTON */
+.btn-send {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-send:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(37,99,235,0.3);
+}
+
+/* INFO BOX (AMAZON STYLE) */
+.info-box {
+    background: rgba(255,255,255,0.9);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.info-box:hover {
+    transform: translateY(-5px);
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+    .contact-section {
+        padding: 40px 10px;
+    }
+
+    .contact-body {
+        padding: 20px;
+    }
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="contact-section">
+    <div class="container">
+
+        <div class="row g-4">
+
+            <!-- FORM -->
+            <div class="col-lg-7">
+                <div class="contact-card">
+
+                    <div class="contact-header">
+                        <h2>Contact Us</h2>
+                        <p>We’re here to help you 24/7</p>
+                    </div>
+
+                    <div class="contact-body">
+                        <form action="/user-contact" method="POST">
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6 form-group">
+                                    <input type="text" name="name" class="form-control" placeholder=" " required>
+                                    <label>Full Name</label>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <input type="email" name="email" class="form-control" placeholder=" " required>
+                                    <label>Email</label>
+                                </div>
+
+                                <div class="col-12 form-group">
+                                    <input type="text" name="phone" class="form-control" placeholder=" " required>
+                                    <label>Phone Number</label>
+                                </div>
+
+                                <div class="col-12 form-group">
+                                    <textarea name="message" class="form-control" placeholder=" " required></textarea>
+                                    <label>Your Message</label>
+                                </div>
+
+                                <div class="col-12">
+                                    <button class="btn btn-send w-100">
+                                        <i class="bi bi-send me-2"></i>Send Message
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- INFO SECTION (AMAZON STYLE) -->
+            <div class="col-lg-5">
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <div class="info-box">
+                            <i class="bi bi-geo-alt fs-3 text-primary"></i>
+                            <h6 class="mt-2">Our Location</h6>
+                            <p class="text-muted small">Hyderabad, India</p>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="info-box">
+                            <i class="bi bi-clock fs-3 text-success"></i>
+                            <h6 class="mt-2">Working Hours</h6>
+                            <p class="text-muted small">Mon - Sat: 9AM - 7PM</p>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="info-box">
+                            <i class="bi bi-envelope fs-3 text-warning"></i>
+                            <h6 class="mt-2">Email Support</h6>
+                            <p class="text-muted small">support@smartcart.com</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

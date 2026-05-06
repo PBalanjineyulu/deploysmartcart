@@ -1,0 +1,361 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}User Signup{% endblock %}
+
+{% block css %}
+<style>
+    :root {
+        --primary: #0f172a;
+        --accent: #ff7a00;
+        --accent-dark: #e65c00;
+        --accent-light: #fff3e6;
+        --text-dark: #111827;
+        --text-muted: #64748b;
+        --card-bg: #ffffff;
+        --border-color: #e5e7eb;
+    }
+
+    .signup-section {
+        padding: 45px 15px;
+        min-height: calc(100vh - 160px);
+        display: flex;
+        align-items: center;
+    }
+
+    .signup-wrapper {
+        max-width: 1050px;
+        margin: auto;
+        width: 100%;
+        background: var(--card-bg);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 25px 60px rgba(15, 23, 42, 0.14);
+        border: 1px solid var(--border-color);
+    }
+
+    .signup-left {
+        background: linear-gradient(135deg, #ff7a00, #ffb703);
+        color: white;
+        padding: 50px 40px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .signup-left::after {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.18);
+        bottom: -70px;
+        right: -70px;
+    }
+
+    .signup-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.22);
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        width: fit-content;
+        margin-bottom: 20px;
+    }
+
+    .signup-left h2 {
+        font-size: 2.3rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 15px;
+    }
+
+    .signup-left p {
+        font-size: 1rem;
+        opacity: 0.95;
+        max-width: 420px;
+    }
+
+    .feature-list {
+        margin-top: 28px;
+        padding: 0;
+        list-style: none;
+    }
+
+    .feature-list li {
+        margin-bottom: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .feature-list span {
+        width: 28px;
+        height: 28px;
+        background: white;
+        color: var(--accent);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+    }
+
+    .signup-right {
+        padding: 50px 42px;
+    }
+
+    .form-heading {
+        margin-bottom: 28px;
+    }
+
+    .form-heading h3 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .form-heading p {
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border-radius: 14px;
+        min-height: 54px;
+        padding: 13px 16px;
+        border: 1px solid #dbe2ea;
+        font-size: 1rem;
+        transition: 0.25s ease;
+        background: #f9fafb;
+    }
+
+    .form-control:focus {
+        background: white;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.15);
+    }
+
+    .input-box {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.2rem;
+    }
+
+    .btn-signup {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        border: none;
+        border-radius: 14px;
+        min-height: 54px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        color: white;
+        transition: 0.3s ease;
+        box-shadow: 0 12px 24px rgba(255, 122, 0, 0.28);
+    }
+
+    .btn-signup:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 28px rgba(255, 122, 0, 0.35);
+        color: white;
+    }
+
+    .auth-text {
+        color: var(--text-muted);
+        font-size: 0.96rem;
+        margin-bottom: 0;
+    }
+
+    .auth-text a {
+        color: var(--accent-dark);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .trust-row {
+        margin-top: 22px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .trust-chip {
+        background: var(--accent-light);
+        color: #9a3412;
+        padding: 8px 12px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    @media (max-width: 991px) {
+        .signup-left {
+            padding: 38px 28px;
+            text-align: center;
+            align-items: center;
+        }
+
+        .signup-left h2 {
+            font-size: 2rem;
+        }
+
+        .feature-list li {
+            justify-content: center;
+        }
+
+        .signup-right {
+            padding: 38px 28px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .signup-section {
+            padding: 25px 10px;
+        }
+
+        .signup-wrapper {
+            border-radius: 20px;
+        }
+
+        .signup-left {
+            padding: 32px 20px;
+        }
+
+        .signup-left h2 {
+            font-size: 1.65rem;
+        }
+
+        .signup-left p {
+            font-size: 0.95rem;
+        }
+
+        .signup-right {
+            padding: 30px 20px;
+        }
+
+        .form-heading h3 {
+            font-size: 1.5rem;
+        }
+
+        .form-control,
+        .btn-signup {
+            min-height: 50px;
+        }
+
+        .trust-row {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="signup-section">
+    <div class="container">
+
+        <div class="signup-wrapper">
+            <div class="row g-0">
+
+                <div class="col-12 col-lg-5">
+                    <div class="signup-left">
+                        <span class="signup-badge">SmartCart Shopping</span>
+
+                        <h2>Shop smarter with your new account</h2>
+
+                        <p>
+                            Create your account and enjoy faster checkout, order tracking,
+                            secure payments, and exciting deals.
+                        </p>
+
+                        <ul class="feature-list">
+                            <li><span>✓</span> Fast OTP verification</li>
+                            <li><span>✓</span> Secure shopping account</li>
+                            <li><span>✓</span> Track orders anytime</li>
+                            <li><span>✓</span> Exclusive user offers</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-7">
+                    <div class="signup-right">
+
+                        <div class="form-heading">
+                            <h3>Create User Account</h3>
+                            <p>Enter your details to receive OTP</p>
+                        </div>
+
+                        <form method="POST" action="/user-register">
+                            <div class="row g-4">
+
+                                <div class="col-12">
+                                    <label class="form-label">Full Name</label>
+                                    <div class="input-box">
+                                        <input type="text" name="name" class="form-control"
+                                            placeholder="Enter your full name" required>
+                                        <span class="input-icon">👤</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Email Address</label>
+                                    <div class="input-box">
+                                        <input type="email" name="email" class="form-control"
+                                            placeholder="Enter your email address" required>
+                                        <span class="input-icon">✉️</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-signup w-100">
+                                        Send OTP
+                                    </button>
+                                </div>
+
+                                <div class="col-12 text-center">
+                                    <p class="auth-text">
+                                        Already have an account?
+                                        <a href="/user-login">Login here</a>
+                                    </p>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="trust-row">
+                                        <span class="trust-chip">100% Secure</span>
+                                        <span class="trust-chip">Easy Checkout</span>
+                                        <span class="trust-chip">Quick OTP</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

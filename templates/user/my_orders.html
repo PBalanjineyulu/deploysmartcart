@@ -1,0 +1,191 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block css %}
+<style>
+    .orders-wrapper {
+        max-width: 1000px;
+        margin: auto;
+        padding: 30px 15px;
+    }
+
+    .order-card {
+        background: white;
+        border: none;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 14px;
+        box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.08);
+        transition: 0.3s;
+    }
+
+    .order-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .order-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .order-info p {
+        margin-bottom: 8px;
+        color: #374151;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    /* ✅ Order Status Badge */
+    .order-status-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .status-delivered {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-shipped {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .view-btn {
+        padding: 10px 14px;
+        background-color: #0077ff;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        display: inline-block;
+        margin-top: 10px;
+        margin-right: 8px;
+    }
+
+    .view-btn:hover {
+        background-color: #005fcc;
+    }
+
+    .cancel-btn {
+        padding: 10px 14px;
+        background-color: #ef4444;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+    .cancel-btn:hover {
+        background-color: #dc2626;
+    }
+
+    .back-btn {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 10px 16px;
+        background: #111827;
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .back-btn:hover {
+        background: #374151;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="main-content">
+    <div class="orders-wrapper">
+
+        <a href="/user/products" class="back-btn">
+            ← Back to Shopping
+        </a>
+
+        <h2 class="mb-4">📦 My Orders</h2>
+
+        {% if orders|length == 0 %}
+        <div class="empty-box">
+            <p>You have not placed any orders yet.</p>
+        </div>
+        {% else %}
+
+        {% for order in orders %}
+        <div class="order-card">
+            <h3>Order #{{ order.order_id }}</h3>
+
+            <div class="order-info">
+                <p><strong>Amount:</strong> ₹{{ order.amount }}</p>
+
+                <p><strong>Payment:</strong>
+                    <span class="status-badge">{{ order.payment_status }}</span>
+                </p>
+
+                <!-- ✅ Added Order Status -->
+                <p><strong>Order Status:</strong>
+                    <span class="order-status-badge
+                        {% if order.order_status == 'Pending' %}status-pending
+                        {% elif order.order_status == 'Cancelled' %}status-cancelled
+                        {% elif order.order_status == 'Delivered' %}status-delivered
+                        {% elif order.order_status == 'Shipped' %}status-shipped
+                        {% endif %}">
+                        {{ order.order_status }}
+                    </span>
+                </p>
+
+                <p><strong>Date:</strong> {{ order.created_at }}</p>
+            </div>
+
+            <a href="/user/order-success/{{ order.order_id }}" class="view-btn">
+                View Details
+            </a>
+
+            <a href="/user/download-invoice/{{ order.order_id }}" class="view-btn">
+                Download Invoice
+            </a>
+
+            <!-- ✅ Fixed Cancel Condition -->
+            {% if order.order_status == 'Pending' %}
+            <a href="/user/cancel-order/{{ order.order_id }}"
+               class="cancel-btn"
+               onclick="return confirm('Are you sure you want to cancel this order?')">
+                Cancel Order
+            </a>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

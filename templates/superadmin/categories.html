@@ -1,0 +1,175 @@
+{% extends "superadmin/base_superadmin.html" %}
+
+{% block title %}Product Categories{% endblock %}
+
+{% block content %}
+
+<style>
+    .categories-wrapper {
+        padding: 35px 15px;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+        color: #64748b;
+        font-size: 1rem;
+        margin-bottom: 25px;
+    }
+
+    .category-card {
+        background: #ffffff;
+        border-radius: 18px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: #0f172a;
+        color: #ffffff;
+        padding: 16px;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        padding: 16px;
+        vertical-align: middle;
+        font-size: 1rem;
+        color: #1e293b;
+    }
+
+    .table tbody tr {
+        transition: 0.25s ease;
+    }
+
+    .table tbody tr:hover {
+        background: #f1f5f9;
+    }
+
+    .category-name {
+        font-weight: 700;
+        text-transform: capitalize;
+    }
+
+    .count-badge {
+        background: #2563eb;
+        color: #ffffff;
+        padding: 7px 14px;
+        border-radius: 50px;
+        font-weight: 700;
+        display: inline-block;
+        min-width: 45px;
+    }
+
+    .view-btn {
+        background: #16a34a;
+        color: #ffffff;
+        border: none;
+        border-radius: 50px;
+        padding: 8px 18px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: 0.25s ease;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .view-btn:hover {
+        background: #15803d;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(22, 163, 74, 0.30);
+    }
+
+    .empty-box {
+        padding: 35px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        .categories-wrapper {
+            padding: 25px 10px;
+        }
+
+        .page-title {
+            font-size: 1.6rem;
+        }
+
+        .table thead th,
+        .table tbody td {
+            padding: 13px;
+            font-size: 0.9rem;
+        }
+
+        .view-btn {
+            padding: 7px 14px;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<div class="container categories-wrapper">
+
+    <h2 class="page-title">Product Categories</h2>
+    <p class="page-subtitle">View all product categories and check products inside each category.</p>
+
+    <div class="category-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle text-center">
+                <thead>
+                    <tr>
+                        <th class="text-start">Category Name</th>
+                        <th>Total Products</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for cat in categories %}
+                    <tr>
+                        <td class="text-start category-name">
+                            {{ cat.category }}
+                        </td>
+
+                        <td>
+                            <span class="count-badge">
+                                {{ cat.total_products }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <a href="/superadmin/category-products/{{ cat.category }}"
+                               class="view-btn">
+                                View Products
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center empty-box">
+                            No categories found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

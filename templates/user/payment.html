@@ -1,0 +1,101 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}Payment{% endblock %}
+
+{% block css %}
+<style>
+    .payment-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .amount {
+        font-size: 28px;
+        font-weight: bold;
+        color: #2563eb;
+    }
+
+    .pay-btn {
+        padding: 12px;
+        font-size: 18px;
+        border-radius: 10px;
+    }
+
+    .center-box {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container center-box">
+
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="payment-card">
+
+            <h4 class="mb-3">Complete Your Payment</h4>
+
+            <p>Total Amount</p>
+            <div class="amount">₹{{ amount }}</div>
+
+            <button id="rzp-button" class="btn btn-success w-100 pay-btn mt-3">
+                <i class="bi bi-credit-card"></i> Pay Now
+            </button>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    var options = {
+        "key": "{{ key_id }}",
+        "amount": "{{ amount * 100 }}",
+        "currency": "INR",
+        "name": "SmartCart",
+        "description": "Order Payment",
+        "order_id": "{{ order_id }}",
+        "handler": function (response) {
+            var form = document.createElement("form");
+            form.method = "POST";
+            form.action = "/verify-payment";
+
+            var fields = {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+            };
+
+            for (var name in fields) {
+                var input = document.createElement("input");
+                input.type = "hidden";
+                input.name = name;
+                input.value = fields[name];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    };
+
+    var rzp = new Razorpay(options);
+
+    document.getElementById('rzp-button').onclick = function (e) {
+        rzp.open();
+        e.preventDefault();
+    }
+</script>
+{% endblock %}

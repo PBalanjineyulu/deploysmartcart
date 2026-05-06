@@ -1,0 +1,179 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Admin Login{% endblock %}
+
+{% block css %}
+<style>
+    :root {
+        --primary: #0f172a;
+        --accent: #2563eb;
+        --accent2: #7c3aed;
+        --accent-hover: #1d4ed8;
+        --text-muted: #64748b;
+    }
+
+    /* ===== BACKGROUND ===== */
+    body {
+        background:
+            radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.2), transparent 40%),
+            radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.2), transparent 40%),
+            linear-gradient(135deg, #eef2ff, #f8fafc, #eef2ff);
+    }
+
+    .login-wrapper {
+        min-height: calc(100vh - 140px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 15px;
+    }
+
+    /* ===== CARD ===== */
+    .login-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+
+        border-radius: 20px;
+        padding: 35px;
+        width: 100%;
+        max-width: 420px;
+
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+
+        transition: 0.3s;
+    }
+
+    .login-card:hover {
+        transform: translateY(-5px);
+    }
+
+    /* ===== TITLE ===== */
+    .login-title {
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 8px;
+        font-size: 1.8rem;
+    }
+
+    .login-subtitle {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 25px;
+        font-size: 0.95rem;
+    }
+
+    /* ===== FORM ===== */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        min-height: 48px;
+        transition: 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    /* ===== LINKS ===== */
+    .signup-link {
+        text-align: center;
+        margin-top: 12px;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .signup-link a {
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .signup-link a:hover {
+        text-decoration: underline;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 576px) {
+        .login-card {
+            padding: 25px;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+        }
+
+        .login-wrapper {
+            padding: 20px;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .login-card {
+            max-width: 450px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container login-wrapper">
+    <div class="login-card">
+
+        <h3 class="login-title">Admin Login</h3>
+        <p class="login-subtitle">Secure access to your dashboard</p>
+
+        <form method="POST" action="/admin-login">
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </button>
+
+            <div class="signup-link mt-3">
+                <a href="/forgot-password">Forgot Password?</a>
+            </div>
+
+            <div class="signup-link">
+                Don't have an account?
+                <a href="/admin-signup">Sign Up</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

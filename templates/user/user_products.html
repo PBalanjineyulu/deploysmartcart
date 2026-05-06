@@ -1,0 +1,302 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}Products{% endblock %}
+
+{% block css %}
+<style>
+
+.products-page {
+    padding: 28px 0 60px;
+}
+
+.page-title {
+    font-weight: 900;
+    color: #111827;
+    margin-bottom: 20px;
+}
+
+/* FILTER */
+.filter-box {
+    background: #fff;
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.filter-form {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-form input,
+.filter-form select,
+.filter-btn {
+    min-height: 48px;
+    border-radius: 13px;
+    font-weight: 600;
+}
+
+/* PRODUCT GRID */
+.product-col {
+    display: flex;
+}
+
+.product-card {
+    width: 100%;
+    min-height: 440px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    transition: 0.3s ease;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.15);
+}
+
+/* IMAGE */
+.product-img-wrap {
+    height: 190px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+}
+
+.product-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: 0.3s;
+}
+
+.product-card:hover .product-img {
+    transform: scale(1.06);
+}
+
+/* BODY */
+.product-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    text-align: center;
+}
+
+.product-name {
+    min-height: 44px;
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: #111827;
+    margin-bottom: 6px;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-category {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+}
+
+.product-price {
+    font-weight: 900;
+    color: #16a34a;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+}
+
+/* BUTTONS */
+.product-actions {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.product-actions .btn {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+/* VIEW */
+.btn-view {
+    border: 2px solid #2563eb;
+    color: #2563eb;
+    background: transparent;
+}
+
+.btn-view:hover {
+    background: #2563eb;
+    color: white;
+}
+
+/* CART */
+.btn-cart {
+    background: #16a34a;
+    color: white;
+    border: none;
+}
+
+.btn-cart:hover {
+    background: #15803d;
+}
+
+/* BUY */
+.btn-buy {
+    background: #facc15;
+    color: #111827;
+    border: none;
+}
+
+.btn-buy:hover {
+    background: #fbbf24;
+}
+
+/* RESPONSIVE */
+@media (max-width: 767px) {
+
+    .filter-form {
+        flex-direction: column;
+    }
+
+    .product-card {
+        min-height: 410px;
+    }
+
+    .product-img-wrap {
+        height: 160px;
+    }
+
+}
+
+@media (max-width: 420px) {
+
+    .product-card {
+        min-height: 390px;
+    }
+
+    .product-img-wrap {
+        height: 140px;
+    }
+
+    .product-name {
+        font-size: 0.9rem;
+    }
+
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container products-page">
+
+    <h3 class="page-title">All Products</h3>
+
+    <!-- FILTER -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-lg-6">
+            <div class="filter-box">
+                <form method="GET" action="/user/products" class="filter-form">
+                    <input type="text" name="search" class="form-control"
+                        placeholder="Search product..."
+                        value="{{ request.args.get('search','') }}">
+
+                    <button class="btn btn-primary filter-btn">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="filter-box">
+                <form method="GET" action="/user/products" class="filter-form">
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+
+                        {% for cat in categories %}
+                        <option value="{{ cat.category }}"
+                            {% if request.args.get('category') == cat.category %}selected{% endif %}>
+                            {{ cat.category }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <button class="btn btn-dark filter-btn">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="row g-3 g-md-4">
+
+        {% for product in products %}
+        <div class="col-6 col-md-4 col-lg-3 product-col">
+
+            <div class="product-card">
+
+                <div class="product-img-wrap">
+                    <img src="/static/uploads/product_images/{{ product.image }}"
+                        class="product-img"
+                        alt="{{ product.name }}">
+                </div>
+
+                <div class="product-body">
+
+                    <h6 class="product-name">{{ product.name }}</h6>
+                    <p class="product-category">{{ product.category }}</p>
+                    <p class="product-price">₹{{ product.price }}</p>
+
+                    <div class="product-actions">
+
+                        <form action="/user/product/{{ product.product_id }}" method="GET">
+                            <button class="btn btn-view">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </form>
+
+                        <form action="/user/add-to-cart/{{ product.product_id }}" method="POST">
+                            <button class="btn btn-cart">
+                                <i class="bi bi-cart3"></i> Add
+                            </button>
+                        </form>
+
+                        <form action="/user/buy-now/{{ product.product_id }}" method="POST">
+                            <button class="btn btn-buy">
+                                ⚡ Buy Now
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

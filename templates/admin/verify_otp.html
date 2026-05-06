@@ -1,0 +1,124 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Verify OTP{% endblock %}
+
+{% block css %}
+<style>
+        :root {
+        --primary: #0f172a;
+        --accent: #040b1c;
+        --accent-hover: #1d4ed8;
+        --text-muted: #64748b;
+    }
+
+    .otp-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 15px;
+    }
+
+    .otp-card {
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 20px;
+        padding: 40px 30px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+    }
+
+    .otp-title {
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .otp-subtitle {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 25px;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+    }
+
+    .form-control:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+    }
+
+    .alert {
+        border-radius: 12px;
+    }
+
+    .alert-danger {
+        background: var(--danger-bg);
+        color: var(--danger-text);
+    }
+
+    /* Footer */
+    .footer {
+        background: #0f172a;
+        color: rgba(255, 255, 255, 0.8);
+        text-align: center;
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+
+    @media(max-width: 576px) {
+        .otp-card {
+            padding: 25px 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- OTP Section -->
+<div class="otp-wrapper">
+    <div class="otp-card">
+
+        <h3 class="otp-title">Verify OTP</h3>
+        <p class="otp-subtitle">Enter the OTP sent to your email and create your password</p>
+
+
+
+        <form method="POST" action="/verify-otp">
+
+            <div class="mb-3">
+                <label>Enter OTP</label>
+                <input type="text" name="otp" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Create Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-check-circle"></i> Verify & Register
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

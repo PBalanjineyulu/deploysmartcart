@@ -1,0 +1,140 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Admin Contact{% endblock %}
+
+{% block css %}
+<style>
+    body {
+        background-color: #f1f5f9;
+    }
+
+    .card {
+        border-radius: 16px;
+    }
+
+    .card-header {
+        border-radius: 16px 16px 0 0;
+    }
+
+    .form-control {
+        border-radius: 10px;
+    }
+
+    .btn-dark {
+        border-radius: 10px;
+    }
+
+    .sidebar-card {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        color: white;
+    }
+
+    .sidebar-card p {
+        color: rgba(255,255,255,0.8);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+    <div class="row g-4">
+
+        <!-- LEFT PANEL -->
+        <div class="col-lg-4 col-12">
+            <div class="card sidebar-card shadow-sm h-100">
+                <div class="card-body">
+                    <h4 class="fw-bold mb-3">Super-Admin Support</h4>
+                    <p>Manage communication from users in real-time.</p>
+
+                    <hr class="border-light">
+
+                    <p><i class="bi bi-envelope me-2"></i> smartcartcompany1@gmail.com</p>
+                    <p><i class="bi bi-telephone me-2"></i> +91 98765 43210</p>
+
+                    <hr class="border-light">
+
+                    <span class="badge bg-success">System Active</span>
+
+                    <div class="mt-4">
+                        <small>
+                            Messages are sent instantly to your admin email inbox.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="col-lg-8 col-12">
+            <div class="card shadow border-0">
+
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-send me-2"></i>Send Message
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form action="{{ url_for('contact') }}" method="POST" id="contactForm">
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                <input type="text" class="form-control" name="phone" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Message</label>
+                                <textarea class="form-control" name="message" rows="4" required></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-dark w-100" id="submitBtn">
+                                    <span id="btnText">Send Message</span>
+                                    <span id="btnLoader" class="spinner-border spinner-border-sm d-none"></span>
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Real-time Button Loader -->
+<script>
+document.getElementById("contactForm").addEventListener("submit", function () {
+    document.getElementById("btnText").innerText = "Sending...";
+    document.getElementById("btnLoader").classList.remove("d-none");
+});
+</script>
+
+{% endblock %}

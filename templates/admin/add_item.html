@@ -1,0 +1,201 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Admin | Add Product{% endblock %}
+
+{% block css %}
+<style>
+    /* ❌ removed body, navbar, footer */
+
+    :root {
+        --accent: #2563eb;
+        --accent-hover: #1d4ed8;
+        --text-dark: #0f172a;
+        --text-muted: #64748b;
+        --card-bg: rgba(255, 255, 255, 0.95);
+        --border-color: #e2e8f0;
+    }
+
+    .page-header {
+        padding: 40px 0 20px;
+    }
+
+    .header-card {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.92));
+        color: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.10);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header-content {
+        padding: 32px;
+    }
+
+    .header-badge {
+        background: rgba(255, 255, 255, 0.10);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+        /* Alerts */
+    .alert {
+        border: none;
+        border-radius: 16px;
+        padding: 14px 18px;
+        font-weight: 500;
+    }
+
+    .alert-success {
+        background: var(--success-bg);
+        color: var(--success-text);
+    }
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .page-subtitle {
+        color: rgba(255, 255, 255, 0.78);
+    }
+
+    .section-space {
+        padding: 20px 0 50px;
+    }
+
+    .content-card {
+        background: var(--card-bg);
+        border-radius: 24px;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.10);
+    }
+
+    .content-card-header {
+        padding: 28px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .content-card-body {
+        padding: 28px;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 14px;
+        min-height: 52px;
+    }
+
+    textarea.form-control {
+        min-height: 140px;
+    }
+
+    .upload-box {
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 18px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .btn {
+        border-radius: 14px;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        border: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<section class="page-header">
+    <div class="container">
+        <div class="header-card">
+            <div class="header-content">
+                <div class="header-badge">
+                    <i class="bi bi-shield-check"></i>
+                    Product Administration
+                </div>
+                <h1 class="page-title">Add New Product</h1>
+                <p class="page-subtitle">
+                    Create and manage new products in your catalog.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Form Section -->
+<section class="section-space">
+    <div class="container">
+        <div class="row justify-content-center">
+
+            <div class="col-12 col-lg-8">
+                <div class="content-card">
+
+                    <div class="content-card-header">
+                        <h3>Product Information</h3>
+                    </div>
+
+                    <div class="content-card-body">
+
+                        <!-- ❌ Flash removed (base handles it) -->
+
+                        <form method="POST" action="/admin/add-item" enctype="multipart/form-data">
+                            <div class="row g-4">
+
+                                <div class="col-12">
+                                    <label class="form-label">Product Name</label>
+                                    <input type="text" name="name" class="form-control" required>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Description</label>
+                                    <textarea name="description" class="form-control" required></textarea>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Category</label>
+                                    <input type="text" name="category" class="form-control" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Price</label>
+                                    <input type="number" name="price" class="form-control" required>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Product Image</label>
+                                    <input type="file" name="image" class="form-control" required>
+                                </div>
+
+                                <div class="col-12 d-flex justify-content-between">
+                                    <a href="/admin-dashboard" class="btn btn-outline-dark">
+                                        Back
+                                    </a>
+                                    <button class="btn btn-primary">
+                                        Add Product
+                                    </button>
+                                </div>
+
+                            </div>
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,384 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}About | SmartCart Admin{% endblock %}
+
+{% block css %}
+<style>
+    
+    .about-hero {
+        background: linear-gradient(135deg, #131921, #232f3e);
+        color: #fff;
+        padding: 80px 20px;
+        border-radius: 0 0 35px 35px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .about-hero::after {
+        content: "";
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        right: -80px;
+        top: -80px;
+        background: rgba(250, 204, 21, 0.18);
+        border-radius: 50%;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: rgba(250, 204, 21, 0.15);
+        color: #facc15;
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        font-size: 0.85rem;
+    }
+
+    .about-hero h1 {
+        font-weight: 900;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        line-height: 1.1;
+    }
+
+    .about-hero p {
+        color: #d1d5db;
+        max-width: 650px;
+        font-size: 1rem;
+    }
+
+    .hero-card {
+        background: #fff;
+        color: #111827;
+        border-radius: 24px;
+        padding: 25px;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+    }
+
+    .metric-card,
+    .feature-card,
+    .process-card {
+        border: none;
+        border-radius: 22px;
+        background: #fff;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        transition: 0.3s ease;
+        height: 100%;
+    }
+
+    .metric-card:hover,
+    .feature-card:hover,
+    .process-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 22px 45px rgba(15, 23, 42, 0.14);
+    }
+
+    .metric-card h3 {
+        font-weight: 900;
+        margin-bottom: 2px;
+    }
+
+    .icon-box {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.55rem;
+    }
+
+    .section-title {
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .section-subtitle {
+        color: #64748b;
+        max-width: 650px;
+        margin: auto;
+    }
+
+    .workflow-number {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #facc15;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        margin-bottom: 15px;
+    }
+
+    .tech-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        padding: 11px 18px;
+        border-radius: 999px;
+        margin: 6px;
+        font-weight: 700;
+        font-size: 0.88rem;
+    }
+
+    .cta-box {
+        background: linear-gradient(135deg, #2874f0, #1e3a8a);
+        border-radius: 28px;
+        padding: 40px 25px;
+        color: white;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .about-hero {
+            padding: 55px 16px;
+            border-radius: 0 0 24px 24px;
+            text-align: center;
+        }
+
+        .about-hero p {
+            margin: auto;
+        }
+
+        .hero-card {
+            margin-top: 25px;
+        }
+
+        .metric-card,
+        .feature-card,
+        .process-card {
+            text-align: center;
+        }
+
+        .icon-box,
+        .workflow-number {
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="about-hero">
+    <div class="container position-relative">
+        <div class="row align-items-center g-4">
+
+            <div class="col-lg-7">
+                <span class="hero-badge">
+                    <i class="bi bi-lightning-charge-fill"></i> SmartCart Admin Platform
+                </span>
+
+                <h1>Manage your store like a real e-commerce seller.</h1>
+
+                <p class="mt-3">
+                    SmartCart helps admins manage products, track orders, monitor sales,
+                    and maintain a smooth shopping experience for customers.
+                </p>
+
+                <div class="d-flex flex-wrap gap-2 mt-4 justify-content-center justify-content-lg-start">
+                    <a href="/admin-dashboard" class="btn btn-warning fw-bold px-4 py-2 rounded-pill">
+                        <i class="bi bi-speedometer2"></i> Go to Dashboard
+                    </a>
+                    <a href="/admin/item-list" class="btn btn-outline-light fw-bold px-4 py-2 rounded-pill">
+                        <i class="bi bi-box-seam"></i> Manage Products
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="hero-card">
+                    <h5 class="fw-bold mb-3">Admin Control Center</h5>
+
+                    <div class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Product Management</span>
+                        <span class="fw-bold text-success">Active</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Order Tracking</span>
+                        <span class="fw-bold text-primary">Live</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Sales Analytics</span>
+                        <span class="fw-bold text-warning">Enabled</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between pt-2">
+                        <span class="text-muted">Secure Access</span>
+                        <span class="fw-bold text-danger">Protected</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- METRICS -->
+<section class="container py-5">
+    <div class="row g-3 text-center">
+
+        <div class="col-6 col-lg-3">
+            <div class="metric-card p-4">
+                <h3 class="text-primary">Fast</h3>
+                <small class="text-muted">Product Updates</small>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="metric-card p-4">
+                <h3 class="text-success">Secure</h3>
+                <small class="text-muted">Admin Login</small>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="metric-card p-4">
+                <h3 class="text-warning">Live</h3>
+                <small class="text-muted">Order Status</small>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="metric-card p-4">
+                <h3 class="text-danger">Smart</h3>
+                <small class="text-muted">Sales Reports</small>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="container pb-5 text-center">
+    <h2 class="section-title">Built for modern online sellers</h2>
+    <p class="section-subtitle mb-4">
+        Inspired by large e-commerce admin systems, SmartCart gives admins the tools
+        needed to manage selling activity from one clean dashboard.
+    </p>
+
+    <div class="row g-4 text-start">
+
+        <div class="col-md-6 col-lg-4">
+            <div class="feature-card p-4">
+                <div class="icon-box bg-primary bg-opacity-10 text-primary mb-3">
+                    <i class="bi bi-box-seam-fill"></i>
+                </div>
+                <h5 class="fw-bold">Product Management</h5>
+                <p class="text-muted small mb-0">
+                    Add, update, view, and remove products with images, category,
+                    pricing, and stock-related details.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="feature-card p-4">
+                <div class="icon-box bg-success bg-opacity-10 text-success mb-3">
+                    <i class="bi bi-cart-check-fill"></i>
+                </div>
+                <h5 class="fw-bold">Order Handling</h5>
+                <p class="text-muted small mb-0">
+                    Track customer orders, view order details, and update order status
+                    from pending to delivered.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="feature-card p-4">
+                <div class="icon-box bg-warning bg-opacity-10 text-warning mb-3">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h5 class="fw-bold">Sales Analytics</h5>
+                <p class="text-muted small mb-0">
+                    View sales trends, revenue reports, and export useful sales data
+                    for business tracking.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- WORKFLOW -->
+<section class="container pb-5">
+    <div class="text-center mb-4">
+        <h2 class="section-title">How admins use SmartCart</h2>
+        <p class="section-subtitle">
+            A simple workflow designed for daily seller operations.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="process-card p-4">
+                <div class="workflow-number">1</div>
+                <h5 class="fw-bold">Upload Products</h5>
+                <p class="text-muted small mb-0">
+                    Add product images, descriptions, price, and category.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="process-card p-4">
+                <div class="workflow-number">2</div>
+                <h5 class="fw-bold">Receive Orders</h5>
+                <p class="text-muted small mb-0">
+                    Customers place orders and admins manage fulfillment.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="process-card p-4">
+                <div class="workflow-number">3</div>
+                <h5 class="fw-bold">Track Sales</h5>
+                <p class="text-muted small mb-0">
+                    View reports, revenue, and performance through analytics.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- TECH STACK -->
+<section class="container pb-5 text-center">
+    <h2 class="section-title mb-3">Technology Stack</h2>
+
+    <div>
+        <span class="tech-pill"><i class="bi bi-code-slash"></i> Flask</span>
+        <span class="tech-pill"><i class="bi bi-database-fill"></i> MySQL</span>
+        <span class="tech-pill"><i class="bi bi-bootstrap-fill"></i> Bootstrap 5</span>
+        <span class="tech-pill"><i class="bi bi-filetype-html"></i> HTML5</span>
+        <span class="tech-pill"><i class="bi bi-filetype-css"></i> CSS3</span>
+        <span class="tech-pill"><i class="bi bi-filetype-js"></i> JavaScript</span>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="container pb-5">
+    <div class="cta-box">
+        <h2 class="fw-bold">Ready to manage your store smarter?</h2>
+        <p class="mb-4">
+            Use SmartCart to control products, orders, and sales from one admin dashboard.
+        </p>
+        <a href="/admin-dashboard" class="btn btn-warning fw-bold px-4 py-2 rounded-pill">
+            Open Admin Dashboard
+        </a>
+    </div>
+</section>
+
+{% endblock %}

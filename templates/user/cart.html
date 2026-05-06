@@ -1,0 +1,269 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}Your Cart{% endblock %}
+
+{% block css %}
+<style>
+    .cart-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .cart-img {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+    }
+
+    .qty-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .qty-btn {
+        width: 32px;
+        height: 32px;
+        background: #2563eb;
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .qty-btn:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .qty-number {
+        min-width: 25px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .remove-btn {
+        color: red;
+        text-decoration: none;
+    }
+
+    .select-col {
+        width: 70px;
+    }
+
+    .total-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px 18px;
+        display: inline-block;
+        text-align: right;
+        min-width: 260px;
+    }
+
+    @media (max-width: 768px) {
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            min-width: 700px;
+        }
+
+        .cart-img {
+            width: 55px;
+            height: 55px;
+        }
+
+        .qty-btn {
+            width: 26px;
+            height: 26px;
+            font-size: 14px;
+        }
+
+        .qty-number {
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-buttons .btn {
+            width: 100%;
+        }
+
+        .total-box {
+            width: 100%;
+            text-align: left;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h3 class="mb-3">Your Cart</h3>
+
+    {% if not cart_items %}
+    <div class="alert alert-info text-center">
+        Your cart is empty.
+    </div>
+    <a href="/user/products" class="btn btn-primary">Shop Now</a>
+
+    {% else %}
+
+    <form method="POST" action="/user/pay-selected-products">
+        <div class="cart-card">
+
+            <div class="table-responsive">
+                <table class="table align-middle text-center">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th class="select-col">
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="justify-content-center align-items-center">
+                        {% for item in cart_items %}
+                        <tr>
+                            <td>
+                                <input class="form-check-input product-checkbox" type="checkbox"
+                                    name="selected_products" value="{{ item.product_id }}"
+                                    data-price="{{ item.price }}"
+                                    data-quantity="{{ item.quantity }}"
+                                    {% if selected_products and item.product_id|string in selected_products %}checked{% endif %}>
+                            </td>
+
+                            <td>
+                                <img src="/static/uploads/product_images/{{ item.image }}"
+                                     class="cart-img">
+                            </td>
+
+                            <td>{{ item.name }}</td>
+                            <td>₹{{ item.price }}</td>
+
+                            <td>
+                                <div class="qty-box">
+                                    <a href="/user/cart/decrease/{{ item.product_id }}" class="qty-btn">−</a>
+                                    <span class="qty-number">{{ item.quantity }}</span>
+                                    <a href="/user/cart/increase/{{ item.product_id }}" class="qty-btn">+</a>
+                                </div>
+                            </td>
+
+                            <td>₹{{ item.total }}</td>
+
+                            <td>
+                                <a href="/user/cart/remove/{{ item.product_id }}" class="remove-btn">
+                                    <i class="bi bi-trash"></i> Remove
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-end mt-3">
+                <div class="total-box">
+                    <h5 class="mb-2">Cart Grand Total: ₹{{ grand_total }}</h5>
+                    <h5 class="mb-0 text-success">
+                        Selected Products Total:
+                        ₹<span id="selectedTotal">
+                            {{ selected_total if selected_total is defined else 0 }}
+                        </span>
+                    </h5>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <a href="/user/products" class="btn btn-outline-primary">
+                    Continue Shopping
+                </a>
+
+                <div class="action-buttons d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        Proceed with Selected Products
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    const totalDisplay = document.getElementById('selectedTotal');
+
+    function updateSelectedTotal() {
+        let total = 0;
+
+        checkboxes.forEach(function (checkbox) {
+            if (checkbox.checked) {
+                const price = parseFloat(checkbox.dataset.price) || 0;
+                const quantity = parseInt(checkbox.dataset.quantity) || 0;
+                total += price * quantity;
+            }
+        });
+
+        if (totalDisplay) {
+            totalDisplay.textContent = total.toFixed(2);
+        }
+    }
+
+    checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', updateSelectedTotal);
+    });
+
+    const selectAll = document.getElementById('selectAll');
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = selectAll.checked;
+            });
+            updateSelectedTotal();
+        });
+
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                if (!this.checked) {
+                    selectAll.checked = false;
+                } else {
+                    const allChecked = [...checkboxes].every(cb => cb.checked);
+                    selectAll.checked = allChecked;
+                }
+            });
+        });
+    }
+
+    updateSelectedTotal();
+</script>
+{% endblock %}

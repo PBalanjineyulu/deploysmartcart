@@ -1,0 +1,365 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block css %}
+<style>
+    :root {
+        --primary: #0f172a;
+        --secondary: #1e293b;
+        --accent: #2563eb;
+        --accent-hover: #1d4ed8;
+        --light-bg: #f8fafc;
+        --card-bg: rgba(255, 255, 255, 0.96);
+        --text-dark: #0f172a;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --success-bg: #ecfdf5;
+        --success-text: #065f46;
+        --shadow-lg: 0 20px 45px rgba(15, 23, 42, 0.10);
+        --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .section-space {
+        padding: 20px 0 50px;
+    }
+
+    .content-card {
+        background: var(--card-bg);
+        border: 1px solid rgba(226, 232, 240, 0.92);
+        border-radius: 24px;
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+
+    .content-card-header {
+        padding: 28px 28px 18px;
+        border-bottom: 1px solid var(--border-color);
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(255, 255, 255, 0.9));
+    }
+
+    .content-card-header h3 {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .content-card-header p {
+        margin: 8px 0 0;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .content-card-body {
+        padding: 28px;
+    }
+
+    .profile-photo-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 26px;
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 22px;
+        background: linear-gradient(180deg, #f8fafc, #ffffff);
+        text-align: center;
+        height: 100%;
+    }
+
+    .profile-photo {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 5px solid #ffffff;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+        margin-bottom: 18px;
+    }
+
+    .profile-placeholder {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #1d4ed8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        border: 5px solid #ffffff;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.10);
+        margin-bottom: 18px;
+    }
+
+    .profile-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+    }
+
+    .profile-email {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        word-break: break-word;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .form-control,
+    textarea.form-control {
+        border-radius: 14px;
+        border: 1px solid #dbe2ea;
+        min-height: 52px;
+        padding: 12px 16px;
+        font-size: 0.96rem;
+        color: var(--text-dark);
+        background-color: #ffffff;
+        box-shadow: none;
+        transition: all 0.25s ease;
+    }
+
+    .form-control:focus,
+    textarea.form-control:focus {
+        border-color: rgba(37, 99, 235, 0.45);
+        box-shadow: 0 0 0 0.22rem rgba(37, 99, 235, 0.12);
+    }
+
+    .form-hint {
+        color: var(--text-muted);
+        font-size: 0.84rem;
+        margin-top: 8px;
+    }
+
+    .upload-box {
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #f8fafc, #ffffff);
+        padding: 22px;
+        transition: all 0.3s ease;
+    }
+
+    .upload-box:hover {
+        border-color: #93c5fd;
+        background: #f8fbff;
+    }
+
+    .upload-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(37, 99, 235, 0.10);
+        color: var(--accent);
+        font-size: 1.3rem;
+        margin-bottom: 14px;
+    }
+
+    .btn {
+        border-radius: 14px;
+        font-weight: 600;
+        padding: 12px 20px;
+        min-height: 50px;
+        transition: all 0.25s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        border: none;
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 28px rgba(37, 99, 235, 0.28);
+    }
+
+    .btn-outline-dark {
+        border: 1px solid #cbd5e1;
+        color: #0f172a;
+        background: white;
+    }
+
+    .btn-outline-dark:hover {
+        background: #0f172a;
+        color: white;
+        border-color: #0f172a;
+    }
+
+    @media (max-width: 991.98px) {
+
+        .content-card-header,
+        .content-card-body {
+            padding: 22px;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .section-space {
+            padding: 12px 0 35px;
+        }
+
+        .content-card-header,
+        .content-card-body {
+            padding: 18px;
+        }
+
+        .btn {
+            width: 100%;
+        }
+
+        .action-buttons {
+            gap: 12px !important;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+
+        .form-control,
+        .btn {
+            min-height: 48px;
+        }
+
+        .upload-box,
+        .profile-photo-wrapper {
+            padding: 18px;
+        }
+
+        .profile-photo,
+        .profile-placeholder {
+            width: 120px;
+            height: 120px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="main-wrapper">
+
+    <section class="section-space">
+        <div class="container">
+            <div class="row g-4 justify-content-center">
+
+                <div class="col-12 col-lg-8">
+                    <div class="content-card">
+
+                        <div class="content-card-header">
+                            <h3>Profile Management</h3>
+                            <p>Update your personal details, password, and profile image below.</p>
+                        </div>
+
+                        <div class="content-card-body">
+
+                            <form method="POST" action="/user/profile" enctype="multipart/form-data">
+                                <div class="row g-4">
+
+                                    <div class="col-12 col-md-5">
+                                        <div class="profile-photo-wrapper">
+
+                                            {% if user.profile_image %}
+                                            <img src="{{ url_for('static', filename='uploads/profile_images/' + user.profile_image) }}"
+                                                alt="User Profile" class="profile-photo">
+                                            {% else %}
+                                            <div class="profile-placeholder">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                            {% endif %}
+
+                                            <div class="profile-name">{{ user.name }}</div>
+                                            <div class="profile-email">{{ user.email }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-7">
+                                        <div class="row g-4">
+
+                                            <div class="col-12">
+                                                <label class="form-label">Name</label>
+                                                <input type="text" name="name" class="form-control"
+                                                    value="{{ user.name }}" placeholder="Enter your full name" required>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label class="form-label">Email</label>
+                                                <input type="email" name="email" class="form-control"
+                                                    value="{{ user.email }}" placeholder="Enter your email address"
+                                                    required>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label class="form-label">New Password</label>
+                                                <input type="password" name="password" class="form-control"
+                                                    placeholder="Leave blank if you do not want to change password">
+                                                <div class="form-hint">
+                                                    Keep this empty if you want to retain your current password.
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="upload-box text-center">
+                                            <div class="upload-icon mx-auto">
+                                                <i class="bi bi-cloud-arrow-up"></i>
+                                            </div>
+
+                                            <label class="form-label">Upload Profile Image</label>
+
+                                            <input type="file" name="profile_image" class="form-control mt-2"
+                                                accept="image/*">
+
+                                            <div class="form-hint">
+                                                Upload JPG/PNG image. Leave empty to keep existing image.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div
+                                            class="d-flex flex-column flex-md-row justify-content-between align-items-stretch action-buttons gap-3">
+                                            <a href="/user-dashboard" class="btn btn-outline-dark">
+                                                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                                            </a>
+
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-check2-circle me-2"></i>Update Profile
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}

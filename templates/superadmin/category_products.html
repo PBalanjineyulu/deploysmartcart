@@ -1,0 +1,209 @@
+{% extends "superadmin/base_superadmin.html" %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+
+<style>
+    .products-wrapper {
+        padding: 35px 15px;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+        color: #64748b;
+        margin-bottom: 25px;
+    }
+
+    .back-btn {
+        background: #475569;
+        color: #fff;
+        padding: 8px 18px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+
+    .back-btn:hover {
+        background: #334155;
+        color: #fff;
+    }
+
+    .products-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: #0f172a;
+        color: #fff;
+        padding: 15px;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        padding: 15px;
+        vertical-align: middle;
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .table tbody tr:hover {
+        background: #f1f5f9;
+    }
+
+    .product-img {
+        width: 65px;
+        height: 65px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .no-img {
+        color: #64748b;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .price-text {
+        color: #16a34a;
+        font-weight: 800;
+    }
+
+    .stock-badge {
+        background: #2563eb;
+        color: #fff;
+        padding: 6px 13px;
+        border-radius: 50px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+        padding: 6px 13px;
+        border-radius: 50px;
+        font-weight: 800;
+    }
+
+    .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 6px 13px;
+        border-radius: 50px;
+        font-weight: 800;
+    }
+
+    .empty-box {
+        padding: 35px;
+        color: #64748b;
+        font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .table thead th,
+        .table tbody td {
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .product-img {
+            width: 55px;
+            height: 55px;
+        }
+    }
+</style>
+
+<div class="container products-wrapper">
+
+    <h2 class="page-title">Products in "{{ category }}"</h2>
+    <p class="page-subtitle">All products available under this selected category.</p>
+
+    <a href="/superadmin/categories" class="back-btn">
+        ← Back to Categories
+    </a>
+
+    <div class="products-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle text-center">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th class="text-start">Product Name</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>{{ p.product_id }}</td>
+
+                        <td>
+                            {% if p.image %}
+                            <!-- ✅ FIXED PATH HERE -->
+                            <img src="{{ url_for('static', filename='uploads/product_images/' ~ p.image) }}"
+                                 class="product-img"
+                                 alt="{{ p.name }}">
+                            {% else %}
+                            <span class="no-img">No Image</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-start">{{ p.name }}</td>
+
+                        <td class="price-text">₹{{ p.price }}</td>
+
+                        <td>
+                            <span class="stock-badge">{{ p.stock }}</span>
+                        </td>
+
+                        <td>
+                            {% if p.status == 'active' %}
+                            <span class="status-active">Active</span>
+                            {% else %}
+                            <span class="status-inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center empty-box">
+                            No products found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

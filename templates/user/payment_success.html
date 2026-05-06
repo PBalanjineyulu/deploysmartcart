@@ -1,0 +1,75 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}Payment Successful{% endblock %}
+
+{% block css %}
+<style>
+    .success-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .success-icon {
+        font-size: 60px;
+        color: #22c55e;
+    }
+
+    .success-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #16a34a;
+        margin-top: 10px;
+    }
+
+    .details-box {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 20px;
+        text-align: left;
+    }
+
+    .center-box {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container center-box">
+
+    <div class="col-12 col-md-6 col-lg-5">
+        <div class="success-card">
+
+            <div class="success-icon">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+
+            <div class="success-title">Payment Successful!</div>
+
+            <p class="text-muted mt-2">
+                Your order has been placed successfully.
+            </p>
+
+            <div class="details-box mt-3">
+                <p><strong>Payment ID:</strong> {{ payment_id }}</p>
+                <p><strong>Order ID:</strong> {{ order_id }}</p>
+            </div>
+
+            <a href="/user/products" class="btn btn-primary mt-4 w-100">
+                Continue Shopping
+            </a>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

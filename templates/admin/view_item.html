@@ -1,0 +1,249 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}View Product{% endblock %}
+
+{% block css %}
+<style>
+
+/* ===== PAGE ===== */
+.product-page {
+    padding: 25px 10px;
+}
+
+/* ===== CARD ===== */
+.product-box {
+    background: #fff;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+}
+
+/* ===== IMAGE SECTION ===== */
+.image-wrapper {
+    position: sticky;
+    top: 80px;
+}
+
+/* ✅ IMAGE CONTAINER FIX */
+.image-box {
+    height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #f8fafc, #eef2ff);
+    border-radius: 14px;
+    padding: 10px;
+    overflow: hidden;
+}
+
+/* ✅ IMAGE FIX (NO CUT + NO EMPTY SPACE ISSUE) */
+.main-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+/* HOVER ZOOM */
+.image-box:hover img {
+    transform: scale(1.05);
+}
+
+/* ===== THUMBNAILS ===== */
+.thumbnail-list {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.thumbnail {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.thumbnail.active,
+.thumbnail:hover {
+    border-color: #2563eb;
+}
+
+/* ===== TITLE ===== */
+.product-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* ===== PRICE ===== */
+.product-price {
+    font-size: 22px;
+    font-weight: 700;
+    color: #059669;
+    margin: 10px 0;
+}
+
+/* ===== CATEGORY ===== */
+.badge {
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+/* ===== DESCRIPTION ===== */
+.product-info {
+    color: #475569;
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+/* ===== BUTTONS ===== */
+.action-btns {
+    margin-top: 25px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-custom {
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+
+    .product-box {
+        padding: 15px;
+    }
+
+    .image-box {
+        height: 280px;
+    }
+
+    .product-title {
+        font-size: 20px;
+    }
+
+    .product-price {
+        font-size: 18px;
+    }
+
+    .image-wrapper {
+        position: static;
+    }
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container product-page">
+
+    <div class="product-box">
+
+        <div class="row g-4">
+
+            <!-- ===== LEFT IMAGE ===== -->
+            <div class="col-12 col-md-6">
+
+                <div class="image-wrapper">
+
+                    <!-- IMAGE BOX -->
+                    <div class="image-box">
+                        <img id="mainImage"
+                             src="/static/uploads/product_images/{{ product.image }}"
+                             class="main-image">
+                    </div>
+
+                    <!-- THUMBNAILS -->
+                    <div class="thumbnail-list">
+
+                        <img src="/static/uploads/product_images/{{ product.image }}"
+                             class="thumbnail active"
+                             onclick="changeImage(this)">
+
+                        <img src="/static/uploads/product_images/{{ product.image }}"
+                             class="thumbnail"
+                             onclick="changeImage(this)">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ===== RIGHT DETAILS ===== -->
+            <div class="col-12 col-md-6">
+
+                <div class="product-title">
+                    {{ product.name }}
+                </div>
+
+                <div class="product-price">
+                    ₹{{ product.price }}
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge bg-primary">
+                        {{ product.category }}
+                    </span>
+                </div>
+
+                <hr>
+
+                <div class="product-info">
+                    {{ product.description }}
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="action-btns">
+
+                    <a href="/admin/update-item/{{ product.product_id }}"
+                       class="btn btn-warning btn-custom">
+                        ✏️ Edit
+                    </a>
+
+                    <a href="/admin/delete-item/{{ product.product_id }}"
+                       class="btn btn-danger btn-custom"
+                       onclick="return confirm('Delete this product?')">
+                        🗑 Delete
+                    </a>
+
+                    <a href="/admin/item-list"
+                       class="btn btn-secondary btn-custom">
+                        ⬅ Back
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+/* IMAGE SWITCH */
+function changeImage(el) {
+    document.getElementById("mainImage").src = el.src;
+
+    document.querySelectorAll(".thumbnail").forEach(img => {
+        img.classList.remove("active");
+    });
+
+    el.classList.add("active");
+}
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,357 @@
+{% extends "superadmin/base_superadmin.html" %}
+
+{% block title %}SuperAdmin Sales Report{% endblock %}
+
+{% block css %}
+<style>
+    .report-wrapper {
+        padding: 25px 0 50px;
+    }
+
+    .report-header {
+        background: linear-gradient(135deg, #0f172a, #1d4ed8);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 25px;
+    }
+
+    .sales-card, .chart-card, .filter-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        border: 1px solid #e2e8f0;
+    }
+
+    .filter-card {
+        margin-bottom: 25px;
+    }
+
+    .chart-box {
+        height: 250px;
+    }
+
+    @media (min-width: 768px) {
+        .chart-box {
+            height: 280px;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .chart-box {
+            height: 300px;
+        }
+    }
+
+    .calendar-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+        padding: 10px;
+        text-align: center;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 14px;
+    }
+
+    .calendar-table th {
+        background: #0f172a;
+        color: white;
+    }
+
+    .calendar-day {
+        font-weight: bold;
+        color: #2563eb;
+    }
+
+    .sales-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .sales-table th,
+    .sales-table td {
+        padding: 10px;
+        text-align: center;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .sales-table th {
+        background: #0f172a;
+        color: white;
+    }
+
+    .admin-name {
+        font-weight: bold;
+        color: #2563eb;
+    }
+
+    @media (max-width: 768px) {
+        .report-header {
+            text-align: center;
+        }
+
+        .report-header .text-end {
+            text-align: center !important;
+            margin-top: 12px;
+        }
+
+        .report-header .col-md-4 {
+            margin-bottom: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container report-wrapper">
+
+    <!-- HEADER -->
+    <div class="report-header">
+        <div class="row align-items-center">
+
+            <div class="col-md-4">
+                <a href="/superadmin/dashboard" class="btn btn-light">Back</a>
+            </div>
+
+            <div class="col-md-4 text-center">
+                <h3>📊 Sales Report</h3>
+                <p>All Admin Sales Overview</p>
+            </div>
+
+            <div class="col-md-4 text-end">
+                <a href="/superadmin/download-sales-excel" class="btn btn-success">
+                    Excel
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- DATE FILTER -->
+    <div class="filter-card">
+        <form method="GET" action="/superadmin/sales-report" class="row g-3 align-items-end">
+
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label fw-bold">📅 Select Date</label>
+                <input type="date"
+                       id="selectedDate"
+                       name="selected_date"
+                       value="{{ selected_date or '' }}"
+                       class="form-control">
+            </div>
+
+            <div class="col-lg-2 col-md-3">
+                <button type="submit" class="btn btn-primary w-100 fw-bold">
+                    Filter
+                </button>
+            </div>
+
+            <div class="col-lg-2 col-md-3">
+                <button type="button" onclick="filterToday()" class="btn btn-success w-100 fw-bold">
+                    Today
+                </button>
+            </div>
+
+            <div class="col-lg-2 col-md-3">
+                <a href="/superadmin/sales-report" class="btn btn-secondary w-100 fw-bold">
+                    Reset
+                </a>
+            </div>
+
+            <div class="col-lg-2 col-md-12">
+                {% if selected_date %}
+                <div class="alert alert-info mb-0 py-2 text-center fw-bold">
+                    {{ selected_date }}
+                </div>
+                {% else %}
+                <div class="alert alert-light border mb-0 py-2 text-center fw-bold">
+                    All Sales
+                </div>
+                {% endif %}
+            </div>
+
+        </form>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="sales-card">
+                <h6>Total Revenue</h6>
+                <h3>₹{{ total_revenue }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="sales-card">
+                <h6>Total Orders</h6>
+                <h3>{{ total_orders }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h6>Admin Revenue</h6>
+                <div class="chart-box">
+                    <canvas id="adminChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h6>Daily Sales</h6>
+                <div class="chart-box">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h6>Order Status</h6>
+                <div class="chart-box">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h6>Daily Sales Calendar</h6>
+
+                <div class="table-responsive">
+                    <table class="calendar-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in range(daily_labels|length) %}
+                            <tr>
+                                <td class="calendar-day">📅 {{ daily_labels[i] }}</td>
+                                <td>₹{{ daily_revenue[i] }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2">No sales found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="chart-card">
+        <h6>Admin Sales Table</h6>
+
+        <div class="table-responsive">
+            <table class="sales-table">
+                <thead>
+                    <tr>
+                        <th>Admin</th>
+                        <th>Orders</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for a in admin_sales %}
+                    <tr>
+                        <td class="admin-name">{{ a.admin_name }}</td>
+                        <td>{{ a.total_orders }}</td>
+                        <td>₹{{ a.total_sales }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3">No sales found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+function filterToday() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("selectedDate").value = today;
+    document.getElementById("selectedDate").form.submit();
+}
+
+new Chart(document.getElementById('adminChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ admin_labels | safe }},
+        datasets: [{
+            label: 'Revenue ₹',
+            data: {{ admin_revenue | safe }},
+            backgroundColor: '#2563eb'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+new Chart(document.getElementById('dailyChart'), {
+    type: 'line',
+    data: {
+        labels: {{ daily_labels | safe }},
+        datasets: [{
+            label: 'Daily Revenue ₹',
+            data: {{ daily_revenue | safe }},
+            borderColor: '#16a34a',
+            fill: false
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+new Chart(document.getElementById('pieChart'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ status_labels | safe }},
+        datasets: [{
+            data: {{ status_values | safe }},
+            backgroundColor: ['#16a34a','#f59e0b','#dc2626','#2563eb']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+</script>
+
+{% endblock %}

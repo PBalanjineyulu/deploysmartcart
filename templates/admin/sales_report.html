@@ -1,0 +1,550 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Sales Report{% endblock %}
+
+{% block css %}
+<style>
+    :root {
+        --dark: #0f172a;
+        --blue: #2563eb;
+        --blue-dark: #1d4ed8;
+        --green: #16a34a;
+        --orange: #f59e0b;
+        --red: #dc2626;
+        --muted: #64748b;
+        --border: #e2e8f0;
+    }
+
+    .report-wrapper {
+        padding: 35px 0 60px;
+    }
+
+    .report-header {
+        background:
+            radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 28%),
+            linear-gradient(135deg, #0f172a, #1d4ed8);
+        color: white;
+        padding: 35px;
+        border-radius: 24px;
+        margin-bottom: 30px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+        overflow: hidden;
+    }
+
+    .report-header h2 {
+        font-weight: 800;
+        margin-bottom: 8px;
+        font-size: clamp(1.7rem, 4vw, 2.4rem);
+    }
+
+    .report-header p {
+        color: rgba(255, 255, 255, 0.78);
+        margin-bottom: 0;
+    }
+
+    .filter-box {
+        background: #fff;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.09);
+        border: 1px solid var(--border);
+        margin-bottom: 25px;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 12px;
+        min-height: 46px;
+    }
+
+    .sales-card,
+    .chart-card,
+    .summary-card {
+        background: #fff;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.10);
+        height: 100%;
+        border: 1px solid var(--border);
+        transition: 0.3s;
+    }
+
+    .sales-card:hover,
+    .chart-card:hover,
+    .summary-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .sales-card h6 {
+        color: var(--muted);
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .sales-card h3 {
+        font-weight: 800;
+        color: var(--dark);
+        margin-bottom: 0;
+        word-break: break-word;
+    }
+
+    .icon-box {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: rgba(37, 99, 235, 0.12);
+        color: var(--blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .icon-green {
+        background: rgba(22, 163, 74, 0.12);
+        color: var(--green);
+    }
+
+    .icon-orange {
+        background: rgba(245, 158, 11, 0.12);
+        color: var(--orange);
+    }
+
+    .icon-red {
+        background: rgba(220, 38, 38, 0.12);
+        color: var(--red);
+    }
+
+    .chart-card h4,
+    .summary-card h4 {
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: var(--dark);
+        font-size: 1.2rem;
+    }
+
+    .chart-box {
+        position: relative;
+        width: 100%;
+        min-height: 320px;
+    }
+
+    .pie-box {
+        position: relative;
+        width: 100%;
+        min-height: 320px;
+    }
+
+    .calendar-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 520px;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+        border-bottom: 1px solid var(--border);
+        padding: 14px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .calendar-table th {
+        background: var(--dark);
+        color: white;
+        font-size: 14px;
+    }
+
+    .calendar-table th:first-child {
+        border-top-left-radius: 14px;
+    }
+
+    .calendar-table th:last-child {
+        border-top-right-radius: 14px;
+    }
+
+    .sales-day {
+        background: #eff6ff;
+        color: var(--blue-dark);
+        font-weight: 800;
+        border-radius: 10px;
+        padding: 8px;
+        display: inline-block;
+        min-width: 90px;
+    }
+
+    .status-pill {
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .status-success {
+        background: rgba(22, 163, 74, 0.12);
+        color: var(--green);
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+    }
+
+    .summary-row span {
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .summary-row strong {
+        color: var(--dark);
+        font-weight: 800;
+    }
+
+    .progress {
+        height: 10px;
+        border-radius: 999px;
+    }
+
+    .progress-bar {
+        border-radius: 999px;
+    }
+
+    @media (max-width: 991px) {
+
+        .chart-box,
+        .pie-box {
+            min-height: 280px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .report-wrapper {
+            padding: 25px 0 45px;
+        }
+
+        .report-header {
+            padding: 25px;
+            border-radius: 20px;
+        }
+
+        .sales-card,
+        .chart-card,
+        .summary-card,
+        .filter-box {
+            padding: 20px;
+            border-radius: 18px;
+        }
+
+        .chart-box,
+        .pie-box {
+            min-height: 260px;
+        }
+
+        .calendar-table th,
+        .calendar-table td {
+            padding: 10px;
+            font-size: 13px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .report-header {
+            padding: 22px;
+        }
+
+        .sales-card h3 {
+            font-size: 1.35rem;
+        }
+
+        .chart-box,
+        .pie-box {
+            min-height: 240px;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container report-wrapper">
+
+    <div class="report-header">
+    <div class="row align-items-center gy-3">
+
+        <!-- LEFT (BACK BUTTON) -->
+        <div class="col-12 col-lg-4">
+            <a href="/admin-dashboard" class="btn btn-light">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- CENTER (TITLE) -->
+        <div class="col-12 col-lg-4 text-center">
+            <h2><i class="bi bi-graph-up-arrow"></i> Sales Report</h2>
+            <p>Analyze daily sales, revenue, orders, and payment performance.</p>
+        </div>
+
+        <!-- RIGHT (EXCEL BUTTON) -->
+        <div class="col-12 col-lg-4 text-lg-end">
+            <a href="/admin/download-sales-excel" class="btn btn-success fw-bold px-4 shadow">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+        </div>
+
+    </div>
+</div>
+    <div class="filter-box">
+        <form method="GET" action="/admin/sales-report">
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold">From Date</label>
+                    <input type="date" name="from_date" class="form-control">
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold">To Date</label>
+                    <input type="date" name="to_date" class="form-control">
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel"></i> Filter Report
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="sales-card">
+                <div class="icon-box"><i class="bi bi-currency-rupee"></i></div>
+                <h6>Total Revenue</h6>
+                <h3>₹{{ total_revenue }}</h3>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="sales-card">
+                <div class="icon-box icon-green"><i class="bi bi-bag-check"></i></div>
+                <h6>Total Orders</h6>
+                <h3>{{ total_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="sales-card">
+                <div class="icon-box icon-green"><i class="bi bi-check-circle"></i></div>
+                <h6>Completed Orders</h6>
+                <h3>{{ completed_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="sales-card">
+                <div class="icon-box icon-orange"><i class="bi bi-clock-history"></i></div>
+                <h6>Pending Orders</h6>
+                <h3>{{ pending_orders }}</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-12 col-lg-7">
+            <div class="chart-card">
+                <h4><i class="bi bi-bar-chart"></i> Daily Revenue Chart</h4>
+                <div class="chart-box">
+                    <canvas id="dailySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="chart-card">
+                <h4><i class="bi bi-pie-chart"></i> Order Status Pie Chart</h4>
+                <div class="pie-box">
+                    <canvas id="orderPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-12 col-lg-5">
+            <div class="summary-card">
+                <h4><i class="bi bi-wallet2"></i> Payment Summary</h4>
+
+                <div class="summary-row">
+                    <span>Online Payments</span>
+                    <strong>₹{{ total_revenue }}</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Average Order Value</span>
+                    <strong>
+                        {% if total_orders %}
+                        ₹{{ total_revenue // total_orders }}
+                        {% else %}
+                        ₹0
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Cancelled Orders</span>
+                    <strong>{{ cancelled_orders }}</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Success Rate</span>
+                    <strong>
+                        {% if total_orders %}
+                        {{ (completed_orders * 100) // total_orders }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>Order Completion</strong>
+                        <span>
+                            {% if total_orders %}
+                            {{ (completed_orders * 100) // total_orders }}%
+                            {% else %}
+                            0%
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="progress">
+                        <div class="progress-bar bg-success"
+                            style="width: {% if total_orders %}{{ (completed_orders * 100) // total_orders }}{% else %}0{% endif %}%;">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-7">
+            <div class="summary-card">
+                <h4><i class="bi bi-calendar3"></i> Daily Sales Calendar</h4>
+
+                <div class="table-responsive">
+                    <table class="calendar-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Orders</th>
+                                <th>Revenue</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in daily_sales %}
+                            <tr>
+                                <td>
+                                    <div class="sales-day">{{ sale.date }}</div>
+                                </td>
+                                <td>{{ sale.orders }}</td>
+                                <td>₹{{ sale.revenue }}</td>
+                                <td>
+                                    <span class="status-pill status-success">Active</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const dailyLabels = {{ daily_labels | safe }};
+    const dailyRevenue = {{ daily_revenue | safe }};
+
+    new Chart(document.getElementById('dailySalesChart'), {
+        type: 'bar',
+        data: {
+            labels: dailyLabels,
+            datasets: [{
+                label: 'Revenue ₹',
+                data: dailyRevenue,
+                backgroundColor: '#2563eb',
+                borderRadius: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('orderPieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending', 'Cancelled'],
+            datasets: [{
+                data: [{{ completed_orders }}, {{ pending_orders }}, {{ cancelled_orders }}],
+        backgroundColor: ['#16a34a', '#f59e0b', '#dc2626'],
+        borderWidth: 0
+            }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+    });
+</script>
+
+{% endblock %}
