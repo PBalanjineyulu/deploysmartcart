@@ -38,6 +38,19 @@ app.config['MAIL_PASSWORD'] = config.MAIL_PASSWORD
 
 
 mail = Mail(app)
+# ================= EMAIL CONTROL =================
+EMAIL_ENABLED = False
+
+def safe_send_mail(message, otp=None, label="MAIL"):
+    if EMAIL_ENABLED:
+        mail.send(message)
+    else:
+        print("===================================")
+        print(f"{label} DISABLED")
+        if otp:
+            print("OTP:", otp)
+        print("===================================")
+
 
 app.config['PRODUCT_UPLOAD_FOLDER'] = 'static/uploads/product_images'
 app.config['PROFILE_UPLOAD_FOLDER'] = 'static/uploads/profile_images'
@@ -104,9 +117,9 @@ def admin_signup():
         recipients=[email]
     )
     message.body = f"Your OTP for SmartCart Admin Registration is: {otp}"
-    mail.send(message)
+    safe_send_mail(message, otp, "ADMIN SIGNUP OTP")
 
-    flash("OTP sent to your email!", "success")
+    flash("OTP generated successfully! Check server log.", "success")
     return redirect('/verify-otp')
 
 
@@ -137,7 +150,7 @@ Reject:
 {reject_link}
 """
 
-    mail.send(message)
+    safe_send_mail(message, label="ADMIN APPROVAL MAIL")
 
 #==============================================================
 # ADMIN-VERIFY OTP Route
@@ -684,24 +697,15 @@ Message:
 {message}
 """
 
-        msg = MIMEText(body)
-        msg["Subject"] = "Contact Form"
-        msg["From"] = email
-        msg["To"] = "smartcartcompany1@gmail.com"
-
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login("smartcartcompany1@gmail.com", "lmid enyw lejj jqej")
-        server.send_message(msg)
-        server.quit()
+        print("===================================")
+        print("ADMIN CONTACT MESSAGE")
+        print(body)
+        print("===================================")
 
         flash("Message sent successfully!", "success")
-
-        # ✅ FIX HERE
         return redirect(url_for("contact"))
 
     return render_template("admin/contact.html", hide_admin_nav=True)
-#FORGOT PASSWORD
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -737,9 +741,9 @@ def forgot_password():
         recipients=[email]
     )
     msg.body = f"Your OTP is: {otp}"
-    mail.send(msg)
+    safe_send_mail(msg, otp, "ADMIN RESET OTP")
 
-    flash("OTP sent to your email!", "success")
+    flash("OTP generated successfully! Check server log.", "success")
     return redirect('/verify-reset-otp')
 
 # VERIFY OTP ROUTE
@@ -950,11 +954,17 @@ def user_register():
     name = request.form['name']
     email = request.form['email']
 
-    # 1️⃣ Check if admin email already exists
+    # 1️⃣ Check if user email already exists
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT user_id FROM users WHERE email=?", (email,))
+
+    cursor.execute(
+        "SELECT user_id FROM users WHERE email=?",
+        (email,)
+    )
+
     existing_user = cursor.fetchone()
+
     cursor.close()
     conn.close()
 
@@ -970,16 +980,41 @@ def user_register():
     otp = random.randint(100000, 999999)
     session['otp'] = otp
 
-    # 4️⃣ Send OTP Email
+    # 4️⃣ Create Email Message
     message = Message(
         subject="SmartCart User OTP",
         sender=config.MAIL_USERNAME,
         recipients=[email]
     )
-    message.body = f"Your OTP for SmartCart User Registration is: {otp}"
-    mail.send(message)
 
-    flash("OTP sent to your email!", "success")
+    message.body = f"""
+Hello {name},
+
+Your SmartCart OTP is:
+
+{otp}
+
+Use this OTP to complete your registration.
+
+Thank You,
+SmartCart Team
+"""
+
+    # ❌ Disabled on PythonAnywhere free plan
+    # mail.send(message)
+
+    # # ✅ Print OTP in server log instead
+    # print("===================================")
+    # print("USER REGISTER OTP:", otp)
+    # print("===================================")
+
+    # flash("OTP generated successfully! Contact admin for OTP or check server logs.", "success")
+
+    # return redirect('/user-verify-otp')
+    safe_send_mail(message, otp, "USER REGISTER OTP")
+
+    flash("OTP generated successfully!", "success")
+
     return redirect('/user-verify-otp')
 
 
@@ -1221,9 +1256,9 @@ def user_forgot_password():
         recipients=[email]
     )
     msg.body = f"Your OTP is: {otp}"
-    mail.send(msg)
+    safe_send_mail(msg, otp, "USER RESET OTP")
 
-    flash("OTP sent to your email!", "success")
+    flash("OTP generated successfully! Check server log.", "success")
     return redirect('/user-verify-reset-otp')
 
 # VERIFY OTP ROUTE
@@ -1387,7 +1422,9 @@ def user_about():
 
 @app.route("/user-contact", methods=["GET", "POST"])
 def user_contact():
+
     if request.method == "POST":
+
         name = request.form["name"]
         email = request.form["email"]
         phone = request.form["phone"]
@@ -1404,23 +1441,15 @@ Message:
 {message}
 """
 
-        msg = MIMEText(body)
-        msg["Subject"] = "Contact Form"
-        msg["From"] = email
-        msg["To"] = "smartcartcopmany1@gmail.com"
-
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login("smartcartcompany1@gmail.com", "lmid enyw lejj jqej")
-        server.send_message(msg)
-        server.quit()
+        print("===================================")
+        print("USER CONTACT MESSAGE")
+        print(body)
+        print("===================================")
 
         flash("Message sent successfully!", "success")
 
-        # ✅ FIXED REDIRECT
         return redirect(url_for("user_contact"))
 
-    # ✅ FIXED TEMPLATE PATH
     return render_template("user/user_contact.html")
 
 
@@ -2600,9 +2629,9 @@ def sa_forgot_password():
         recipients=[email]
     )
     msg.body = f"Your OTP is: {otp}"
-    mail.send(msg)
+    safe_send_mail(msg, otp, "SUPERADMIN RESET OTP")
 
-    flash("OTP sent to your email!", "success")
+    flash("OTP generated successfully! Check server log.", "success")
     return redirect('/sa-verify-reset-otp')
 
 # VERIFY RESET OTP
