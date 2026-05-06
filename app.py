@@ -1435,12 +1435,11 @@ def user_about():
 @app.route("/user-contact/<int:admin_id>", methods=["GET", "POST"])
 def user_contact(admin_id):
 
-    # User login check
     if 'user_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/user-login')
 
-    # Fetch admin details
+    # Fetch admin email
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -1454,44 +1453,35 @@ def user_contact(admin_id):
     cursor.close()
     conn.close()
 
-    # Admin not found
     if not admin:
         flash("Admin not found!", "danger")
         return redirect('/user/products')
 
-    # POST → Send message
-    if request.method == "POST":
+    if request.method == 'POST':
 
-        name = request.form["name"]
-        email = request.form["email"]
-        phone = request.form["phone"]
-        message = request.form["message"]
-
-        body = f"""
-New Message From SmartCart User
-
-Admin Name: {admin['name']}
-
-User Details
-------------------------
-Name: {name}
-Email: {email}
-Phone: {phone}
-
-Message
-------------------------
-{message}
-"""
+        name = request.form['name']
+        phone = request.form['phone']
+        email = request.form['email']
+        message_text = request.form['message']
 
         try:
 
             msg = Message(
-                subject="SmartCart User Contact",
+                subject="User Contact Message - SmartCart",
                 sender=app.config['MAIL_USERNAME'],
                 recipients=[admin['email']]
             )
 
-            msg.body = body
+            msg.body = f"""
+Admin Name: {admin['name']}
+
+Name: {name}
+Phone: {phone}
+Email: {email}
+
+Message:
+{message_text}
+"""
 
             mail.send(msg)
 
@@ -1499,9 +1489,9 @@ Message
 
         except Exception as e:
 
-            print("USER CONTACT MAIL ERROR:", e)
+            print(e)
 
-            flash("Failed to send message!", "danger")
+            flash("Error sending message!", "danger")
 
         return redirect(
             url_for(
@@ -1510,9 +1500,8 @@ Message
             )
         )
 
-    # GET → Open page
     return render_template(
-        "user/user_contact.html",
+        'user/user_contact.html',
         admin_id=admin_id,
         admin=admin
     )
