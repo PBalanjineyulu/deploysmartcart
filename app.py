@@ -61,18 +61,20 @@ os.makedirs(app.config['PROFILE_UPLOAD_FOLDER'], exist_ok=True)
 
 # ---------------- SQLITE DB CONNECTION FUNCTION --------------
 def get_db_connection():
-    # For PythonAnywhere, keep smartcart.db in the same folder as this app.py file
-    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "smartcart.db")
+    # For PythonAnywhere, keep smartcart.db in same folder as app.py
+    db_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "smartcart.db"
+    )
+
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+
     return conn
 
+
 SUPERADMIN_EMAIL = "smartcartcompany1@gmail.com"
-
-SENDER_EMAIL = "smartcartcompany1@gmail.com"
-
-SENDER_APP_PASSWORD = "mfnt mlzq rfse gzlt"
 
 
 
@@ -1042,7 +1044,7 @@ def user_verify_otp_post():
     # Insert admin into database
     conn = get_db_connection()
     cursor = conn.cursor()
-    admin_id = session.get('admin_id') 
+    # admin_id = session.get('admin_id') 
     cursor.execute(
         "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
         (session['signup_name'], session['signup_email'], hashed_password)
@@ -1056,7 +1058,7 @@ def user_verify_otp_post():
     session.pop('signup_name', None)
     session.pop('signup_email', None)
 
-    flash("Admin Registered Successfully!", "success")
+    flash("User Registered Successfully!", "success")
     return redirect('/user-login')
 
 
@@ -1821,9 +1823,8 @@ def pay_selected_products():
     return redirect('/user/shipping-address')
 
 #----------------------------------------------------------------
-#ROUTE: SHIPPING ADDRESS
+# ROUTE: SHIPPING ADDRESS
 #---------------------------------------------------------------
-
 @app.route('/user/shipping-address', methods=['GET', 'POST'])
 def shipping_address():
 
@@ -1836,21 +1837,17 @@ def shipping_address():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # ============================
-    # HANDLE POST
-    # ============================
     if request.method == 'POST':
 
-        action = request.form.get("action")   # 🔥 ADD THIS
+        action = request.form.get("action")
 
-        # ============================
-        # 1. USE EXISTING ADDRESS
-        # ============================
         if action == "use_existing":
 
             selected_address_id = request.form.get('selected_address_id')
 
             if not selected_address_id:
+                cursor.close()
+                conn.close()
                 flash("Please select an address!", "warning")
                 return redirect('/user/shipping-address')
 
@@ -1861,6 +1858,8 @@ def shipping_address():
             address = cursor.fetchone()
 
             if not address:
+                cursor.close()
+                conn.close()
                 flash("Invalid address selected!", "danger")
                 return redirect('/user/shipping-address')
 
@@ -1871,9 +1870,6 @@ def shipping_address():
 
             return redirect('/user/pay')
 
-        # ============================
-        # 2. SAVE NEW ADDRESS
-        # ============================
         elif action == "save_new":
 
             full_name = request.form.get("full_name")
@@ -1883,9 +1879,11 @@ def shipping_address():
             city = request.form.get("city")
             state = request.form.get("state")
             pincode = request.form.get("pincode")
-            country = request.form.get("country")
+            country = request.form.get("country") or "India"
 
             if not full_name or not phone or not address1:
+                cursor.close()
+                conn.close()
                 flash("Please fill required fields!", "warning")
                 return redirect('/user/shipping-address')
 
@@ -1897,9 +1895,7 @@ def shipping_address():
 
             conn.commit()
 
-            # get last inserted id
-            new_address_id = cursor.lastrowid
-            session['shipping_address_id'] = new_address_id
+            session['shipping_address_id'] = cursor.lastrowid
 
             cursor.close()
             conn.close()
@@ -1907,9 +1903,6 @@ def shipping_address():
             flash("Address saved successfully!", "success")
             return redirect('/user/pay')
 
-    # ============================
-    # HANDLE GET
-    # ============================
     cursor.execute("SELECT * FROM addresses WHERE user_id = ?", (user_id,))
     addresses = cursor.fetchall()
 
@@ -2392,7 +2385,7 @@ def superadmin_dashboard():
     cursor.execute("SELECT COUNT(*) AS total_orders FROM orders")
     total_orders = cursor.fetchone()['total_orders']
 
-    cursor.execute("SELECT IFNULL(SUM(amount), 0) AS total_revenue FROM orders")
+    cursor.execute("SELECT COALESCE(SUM(amount), 0) AS total_revenue FROM orders")
     total_revenue = cursor.fetchone()['total_revenue']
 
     cursor.close()
@@ -2568,7 +2561,7 @@ def superadmin_revenue():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT IFNULL(SUM(amount), 0) AS total_revenue FROM orders")
+    cursor.execute("SELECT COALESCE(SUM(amount), 0) AS total_revenue FROM orders")
     total_revenue = cursor.fetchone()['total_revenue']
 
     cursor.execute("""
