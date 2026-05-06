@@ -680,9 +680,13 @@ def about():
 #       CONTACT PAGE
 #==========================================================================================
 
+# =========================================================
+# ADMIN CONTACT SUPERADMIN
+# =========================================================
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
 
+    # Admin login check
     if 'admin_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/admin-login')
@@ -692,28 +696,26 @@ def contact():
         name = request.form["name"]
         email = request.form["email"]
         phone = request.form["phone"]
-        message = request.form["message"]
-
-        body = f"""
-New Message From Admin
-
-Name: {name}
-Email: {email}
-Phone: {phone}
-
-Message:
-{message}
-"""
+        message_text = request.form["message"]
 
         try:
 
             msg = Message(
-                subject="SmartCart Admin Contact",
+                subject="Contact Admin - SmartCart",
                 sender=app.config['MAIL_USERNAME'],
                 recipients=[SUPERADMIN_EMAIL]
             )
 
-            msg.body = body
+            msg.body = f"""
+New Message From Admin
+
+Name: {name}
+Phone: {phone}
+Email: {email}
+
+Message:
+{message_text}
+"""
 
             mail.send(msg)
 
@@ -723,9 +725,9 @@ Message:
 
             print("ADMIN CONTACT MAIL ERROR:", e)
 
-            flash("Failed to send message.", "danger")
+            flash("Error sending message!", "danger")
 
-        return redirect(url_for("contact"))
+        return redirect('/contact')
 
     return render_template(
         "admin/contact.html",
@@ -1429,66 +1431,23 @@ def user_about():
 #  ROUTE :user- CONTACT PAGE
 #===================================
 
-# =========================================================
-# USER CONTACT REDIRECT
-# =========================================================
-@app.route("/user-contact")
-def user_contact_redirect():
+@app.route('/user-contact', methods=['GET', 'POST'])
+def user_contact():
 
-    flash("Please select a product to contact the admin.", "warning")
-
-    return redirect('/user/products')
-
-
-# =========================================================
-# USER CONTACT ADMIN
-# =========================================================
-@app.route("/user-contact/<int:admin_id>", methods=["GET", "POST"])
-def user_contact(admin_id):
-
-    # Check user login
-    if 'user_id' not in session:
-        flash("Please login first!", "danger")
-        return redirect('/user-login')
-
-    # Fetch admin details
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT admin_id, name, email FROM admin WHERE admin_id=?",
-        (admin_id,)
-    )
-
-    admin = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
-
-    # Admin not found
-    if not admin:
-        flash("Admin not found!", "danger")
-        return redirect('/user/products')
-
-    # POST → Send message
-    if request.method == "POST":
-
+    if request.method == 'POST':
         name = request.form['name']
         phone = request.form['phone']
         email = request.form['email']
         message_text = request.form['message']
 
         try:
-
             msg = Message(
                 subject="User Contact Message - SmartCart",
                 sender=app.config['MAIL_USERNAME'],
-                recipients=[admin['email']]
+                recipients=[SUPERADMIN_EMAIL]
             )
 
             msg.body = f"""
-Admin Name: {admin['name']}
-
 Name: {name}
 Phone: {phone}
 Email: {email}
@@ -1502,24 +1461,12 @@ Message:
             flash("Message sent successfully!", "success")
 
         except Exception as e:
-
             print("USER CONTACT MAIL ERROR:", e)
-
             flash("Error sending message!", "danger")
 
-        return redirect(
-            url_for(
-                'user_contact',
-                admin_id=admin_id
-            )
-        )
+        return redirect('/user-contact')
 
-    # GET → Open contact page
-    return render_template(
-        'user/user_contact.html',
-        admin_id=admin_id,
-        admin=admin
-    )
+    return render_template('user/user_contact.html')
 
 
 
