@@ -1430,16 +1430,28 @@ def user_about():
 #===================================
 
 # =========================================================
+# USER CONTACT REDIRECT
+# =========================================================
+@app.route("/user-contact")
+def user_contact_redirect():
+
+    flash("Please select a product to contact the admin.", "warning")
+
+    return redirect('/user/products')
+
+
+# =========================================================
 # USER CONTACT ADMIN
 # =========================================================
 @app.route("/user-contact/<int:admin_id>", methods=["GET", "POST"])
 def user_contact(admin_id):
 
+    # Check user login
     if 'user_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/user-login')
 
-    # Fetch admin email
+    # Fetch admin details
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -1453,11 +1465,13 @@ def user_contact(admin_id):
     cursor.close()
     conn.close()
 
+    # Admin not found
     if not admin:
         flash("Admin not found!", "danger")
         return redirect('/user/products')
 
-    if request.method == 'POST':
+    # POST → Send message
+    if request.method == "POST":
 
         name = request.form['name']
         phone = request.form['phone']
@@ -1489,7 +1503,7 @@ Message:
 
         except Exception as e:
 
-            print(e)
+            print("USER CONTACT MAIL ERROR:", e)
 
             flash("Error sending message!", "danger")
 
@@ -1500,6 +1514,7 @@ Message:
             )
         )
 
+    # GET → Open contact page
     return render_template(
         'user/user_contact.html',
         admin_id=admin_id,
