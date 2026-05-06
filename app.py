@@ -5,8 +5,8 @@ import sqlite3
 import bcrypt
 import random
 import config
-from email.mime.text import MIMEText
-import smtplib
+# from email.mime.text import MIMEText
+# import smtplib
 import os
 from werkzeug.utils import secure_filename
 import razorpay
