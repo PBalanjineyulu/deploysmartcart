@@ -133,8 +133,10 @@ def verify_otp_get():
 
 def send_admin_approval_mail(admin_id, name, email):
 
-    approve_link = f"https://balanjineyuluSmartCart.pythonanywhere.com/superadmin/approve-admin/{admin_id}"
-    reject_link = f"https://balanjineyuluSmartCart.pythonanywhere.com/superadmin/reject-admin/{admin_id}"
+    approve_link = f"https://balanjineyulusmartcart.pythonanywhere.com/superadmin/approve-admin/{admin_id}"
+
+    reject_link = f"https://balanjineyulusmartcart.pythonanywhere.com/superadmin/reject-admin/{admin_id}"
+
     message = Message(
         subject="New Admin Approval Request",
         sender=config.MAIL_USERNAME,
@@ -155,7 +157,6 @@ Reject:
 """
 
     safe_send_mail(message, label="ADMIN APPROVAL MAIL")
-
 #==============================================================
 # ADMIN-VERIFY OTP Route
 #==============================================================
