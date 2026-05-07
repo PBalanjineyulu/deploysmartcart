@@ -2566,16 +2566,21 @@ def superadmin_orders():
 
     cursor.execute("""
         SELECT 
-            orders.order_id,
-            orders.user_id,
-            users.name AS username,
-            orders.amount,
-            orders.payment_status,
-            orders.order_status,
-            orders.created_at
-        FROM orders
-        LEFT JOIN users ON orders.user_id = users.user_id
-        ORDER BY orders.order_id DESC
+            o.order_id,
+            o.user_id,
+            u.name AS username,
+            o.amount,
+            o.payment_status,
+            o.order_status,
+            o.created_at,
+            GROUP_CONCAT(DISTINCT oi.product_name) AS products
+        FROM orders o
+        LEFT JOIN users u 
+            ON o.user_id = u.user_id
+        LEFT JOIN order_items oi 
+            ON o.order_id = oi.order_id
+        GROUP BY o.order_id
+        ORDER BY o.order_id DESC
     """)
 
     orders = cursor.fetchall()
@@ -2583,8 +2588,55 @@ def superadmin_orders():
     cursor.close()
     conn.close()
 
-    return render_template('superadmin/orders.html', orders=orders)
+    return render_template(
+        'superadmin/orders.html',
+        orders=orders
+    )
 
+@app.route('/superadmin/order/<int:order_id>')
+def superadmin_order_details(order_id):
+
+    if not superadmin_required():
+        return redirect('/superadmin-login')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # ORDER DETAILS
+    cursor.execute("""
+        SELECT 
+            o.*,
+            u.name AS username,
+            u.email AS user_email
+        FROM orders o
+        LEFT JOIN users u
+            ON o.user_id = u.user_id
+        WHERE o.order_id = ?
+    """, (order_id,))
+
+    order = cursor.fetchone()
+
+    # ORDER ITEMS
+    cursor.execute("""
+        SELECT *
+        FROM order_items
+        WHERE order_id = ?
+    """, (order_id,))
+
+    items = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    if not order:
+        flash("Order not found!", "danger")
+        return redirect('/superadmin/orders')
+
+    return render_template(
+        'superadmin/order_details.html',
+        order=order,
+        items=items
+    )
 
 # ============================================================
 # VIEW REVENUE
