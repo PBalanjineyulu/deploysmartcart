@@ -3230,21 +3230,21 @@ def superadmin_sales_report():
         flash("Please login!", "danger")
         return redirect('/superadmin-login')
 
-    selected_date = request.args.get('selected_date')
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
+
+    if not from_date or not to_date:
+        today = datetime.now().strftime('%Y-%m-%d')
+        from_date = today
+        to_date = today
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 🔥 WHERE condition
-    where_sql = ""
-    params = []
-
-    if selected_date:
-        where_sql = "WHERE DATE(o.created_at) = ?"
-        params.append(selected_date)
-
-    # ✅ Admin-wise revenue (FIXED)
-    cursor.execute(f"""
+    # =========================
+    # ADMIN WISE REVENUE
+    # =========================
+    cursor.execute("""
         SELECT 
             a.admin_id,
             a.name AS admin_name,
@@ -3253,74 +3253,60 @@ def superadmin_sales_report():
         FROM admin a
         LEFT JOIN orders o 
             ON a.admin_id = o.admin_id
-        {where_sql}
+            AND DATE(o.created_at) BETWEEN ? AND ?
         GROUP BY a.admin_id, a.name
         ORDER BY total_sales DESC
-    """, params)
+    """, (from_date, to_date))
+
     admin_sales = cursor.fetchall()
 
-    # ✅ Day-by-day sales (FIXED)
-    if selected_date:
-        cursor.execute("""
-            SELECT 
-                DATE(created_at) AS sale_date,
-                COUNT(order_id) AS total_orders,
-                IFNULL(SUM(amount), 0) AS total_revenue
-            FROM orders
-            WHERE DATE(created_at) = ?
-            GROUP BY DATE(created_at)
-            ORDER BY sale_date
-        """, (selected_date,))
-    else:
-        cursor.execute("""
-            SELECT 
-                DATE(created_at) AS sale_date,
-                COUNT(order_id) AS total_orders,
-                IFNULL(SUM(amount), 0) AS total_revenue
-            FROM orders
-            GROUP BY DATE(created_at)
-            ORDER BY sale_date
-        """)
+    # =========================
+    # DAILY SALES
+    # =========================
+    cursor.execute("""
+        SELECT 
+            DATE(created_at) AS sale_date,
+            COUNT(order_id) AS total_orders,
+            IFNULL(SUM(amount), 0) AS total_revenue
+        FROM orders
+        WHERE DATE(created_at) BETWEEN ? AND ?
+        GROUP BY DATE(created_at)
+        ORDER BY sale_date
+    """, (from_date, to_date))
 
     daily_sales_rows = cursor.fetchall()
 
-    # ✅ Order status (FIXED)
-    if selected_date:
+    # =========================
+    # ORDER STATUS COUNTS
+    # =========================
+    def count_status(status):
         cursor.execute("""
-            SELECT 
-                order_status,
-                COUNT(order_id) AS status_count
+            SELECT COUNT(order_id) AS total
             FROM orders
-            WHERE DATE(created_at) = ?
-            GROUP BY order_status
-        """, (selected_date,))
-    else:
-        cursor.execute("""
-            SELECT 
-                order_status,
-                COUNT(order_id) AS status_count
-            FROM orders
-            GROUP BY order_status
-        """)
+            WHERE DATE(created_at) BETWEEN ? AND ?
+            AND order_status = ?
+        """, (from_date, to_date, status))
 
-    status_rows = cursor.fetchall()
+        result = cursor.fetchone()
+        return result["total"] or 0
 
-    # ✅ Summary (FIXED)
-    if selected_date:
-        cursor.execute("""
-            SELECT 
-                IFNULL(SUM(amount), 0) AS total_revenue,
-                COUNT(order_id) AS total_orders
-            FROM orders
-            WHERE DATE(created_at) = ?
-        """, (selected_date,))
-    else:
-        cursor.execute("""
-            SELECT 
-                IFNULL(SUM(amount), 0) AS total_revenue,
-                COUNT(order_id) AS total_orders
-            FROM orders
-        """)
+    pending_orders = count_status("Pending")
+    confirmed_orders = count_status("Confirmed")
+    packed_orders = count_status("Packed")
+    shipped_orders = count_status("Shipped")
+    delivered_orders = count_status("Delivered")
+    cancelled_orders = count_status("Cancelled")
+
+    # =========================
+    # SUMMARY
+    # =========================
+    cursor.execute("""
+        SELECT 
+            IFNULL(SUM(amount), 0) AS total_revenue,
+            COUNT(order_id) AS total_orders
+        FROM orders
+        WHERE DATE(created_at) BETWEEN ? AND ?
+    """, (from_date, to_date))
 
     summary = cursor.fetchone()
 
@@ -3333,29 +3319,58 @@ def superadmin_sales_report():
     daily_labels = [str(row["sale_date"]) for row in daily_sales_rows]
     daily_revenue = [float(row["total_revenue"] or 0) for row in daily_sales_rows]
 
-    status_labels = [row["order_status"] for row in status_rows]
-    status_values = [row["status_count"] for row in status_rows]
+    status_labels = [
+        "Pending",
+        "Confirmed",
+        "Packed",
+        "Shipped",
+        "Delivered",
+        "Cancelled"
+    ]
+
+    status_values = [
+        pending_orders,
+        confirmed_orders,
+        packed_orders,
+        shipped_orders,
+        delivered_orders,
+        cancelled_orders
+    ]
 
     return render_template(
         "superadmin/sales_report.html",
+
         admin_sales=admin_sales,
+
         total_revenue=float(summary["total_revenue"] or 0),
         total_orders=summary["total_orders"] or 0,
+
+        pending_orders=pending_orders,
+        confirmed_orders=confirmed_orders,
+        packed_orders=packed_orders,
+        shipped_orders=shipped_orders,
+        delivered_orders=delivered_orders,
+        completed_orders=delivered_orders,
+        cancelled_orders=cancelled_orders,
+
         admin_labels=admin_labels,
         admin_revenue=admin_revenue,
+
         daily_labels=daily_labels,
         daily_revenue=daily_revenue,
+
         status_labels=status_labels,
         status_values=status_values,
-        selected_date=selected_date   # 🔥 IMPORTANT
+
+        from_date=from_date,
+        to_date=to_date
     )
-
-
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 from io import BytesIO
 from flask import make_response
+
 
 @app.route('/superadmin/download-sales-excel')
 def superadmin_download_sales_excel():
@@ -3364,14 +3379,24 @@ def superadmin_download_sales_excel():
         flash("Please login!", "danger")
         return redirect('/superadmin-login')
 
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
+
+    if not from_date or not to_date:
+        today = datetime.now().strftime('%Y-%m-%d')
+        from_date = today
+        to_date = today
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT COUNT(DISTINCT order_id) AS total_orders,
-               IFNULL(SUM(amount), 0) AS total_revenue
+        SELECT 
+            COUNT(DISTINCT order_id) AS total_orders,
+            COALESCE(SUM(amount), 0) AS total_revenue
         FROM orders
-    """)
+        WHERE DATE(created_at) BETWEEN ? AND ?
+    """, (from_date, to_date))
     summary = cursor.fetchone()
 
     cursor.execute("SELECT COUNT(*) AS total_admins FROM admin")
@@ -3389,71 +3414,86 @@ def superadmin_download_sales_excel():
             a.name AS admin_name,
             a.email AS admin_email,
             COUNT(DISTINCT o.order_id) AS total_orders,
-            IFNULL(SUM(oi.total), 0) AS total_revenue,
-            IFNULL(SUM(oi.quantity), 0) AS total_items_sold
+            COALESCE(SUM(oi.total), 0) AS total_revenue,
+            COALESCE(SUM(oi.quantity), 0) AS total_items_sold
         FROM admin a
-        LEFT JOIN products p ON a.admin_id = p.admin_id
-        LEFT JOIN order_items oi ON p.product_id = oi.product_id
-        LEFT JOIN orders o ON oi.order_id = o.order_id
+        LEFT JOIN products p 
+            ON a.admin_id = p.admin_id
+        LEFT JOIN order_items oi 
+            ON p.product_id = oi.product_id
+        LEFT JOIN orders o 
+            ON oi.order_id = o.order_id
+            AND DATE(o.created_at) BETWEEN ? AND ?
         GROUP BY a.admin_id, a.name, a.email
         ORDER BY total_revenue DESC
-    """)
+    """, (from_date, to_date))
     admin_sales = cursor.fetchall()
 
     cursor.execute("""
         SELECT 
             a.name AS admin_name,
             p.product_id,
-            oi.product_name AS product_name,
+            p.name AS product_name,
             p.category,
-            IFNULL(SUM(oi.quantity), 0) AS quantity_sold,
-            IFNULL(SUM(oi.total), 0) AS total_sales
+            COALESCE(SUM(oi.quantity), 0) AS quantity_sold,
+            COALESCE(SUM(oi.total), 0) AS total_sales
         FROM products p
-        LEFT JOIN admin a ON p.admin_id = a.admin_id
-        LEFT JOIN order_items oi ON p.product_id = oi.product_id
-        GROUP BY p.product_id, oi.product_name, p.category, a.name
+        LEFT JOIN admin a 
+            ON p.admin_id = a.admin_id
+        LEFT JOIN order_items oi 
+            ON p.product_id = oi.product_id
+        LEFT JOIN orders o 
+            ON oi.order_id = o.order_id
+            AND DATE(o.created_at) BETWEEN ? AND ?
+        GROUP BY p.product_id, p.name, p.category, a.name
         ORDER BY total_sales DESC
-    """)
+    """, (from_date, to_date))
     high_sales = cursor.fetchall()
 
     cursor.execute("""
         SELECT 
             a.name AS admin_name,
             p.product_id,
-            oi.product_name AS product_name,
+            p.name AS product_name,
             p.category,
             p.stock,
-            IFNULL(SUM(oi.quantity), 0) AS quantity_sold,
-            IFNULL(SUM(oi.total), 0) AS total_sales
+            COALESCE(SUM(oi.quantity), 0) AS quantity_sold,
+            COALESCE(SUM(oi.total), 0) AS total_sales
         FROM products p
-        LEFT JOIN admin a ON p.admin_id = a.admin_id
-        LEFT JOIN order_items oi ON p.product_id = oi.product_id
-        GROUP BY p.product_id, oi.product_name, p.category, p.stock, a.name
+        LEFT JOIN admin a 
+            ON p.admin_id = a.admin_id
+        LEFT JOIN order_items oi 
+            ON p.product_id = oi.product_id
+        LEFT JOIN orders o 
+            ON oi.order_id = o.order_id
+            AND DATE(o.created_at) BETWEEN ? AND ?
+        GROUP BY p.product_id, p.name, p.category, p.stock, a.name
         ORDER BY total_sales ASC
-    """)
+    """, (from_date, to_date))
     low_sales = cursor.fetchall()
 
     cursor.execute("""
         SELECT 
-            DATE(o.created_at) AS sale_date,
-            COUNT(DISTINCT o.order_id) AS total_orders,
-            IFNULL(SUM(oi.total), 0) AS total_revenue
-        FROM orders o
-        LEFT JOIN order_items oi ON o.order_id = oi.order_id
-        GROUP BY DATE(o.created_at)
+            DATE(created_at) AS sale_date,
+            COUNT(order_id) AS total_orders,
+            COALESCE(SUM(amount), 0) AS total_revenue
+        FROM orders
+        WHERE DATE(created_at) BETWEEN ? AND ?
+        GROUP BY DATE(created_at)
         ORDER BY sale_date DESC
-    """)
+    """, (from_date, to_date))
     daily_sales = cursor.fetchall()
 
     cursor.execute("""
         SELECT 
             order_status,
             COUNT(order_id) AS total_orders,
-            IFNULL(SUM(amount), 0) AS total_amount
+            COALESCE(SUM(amount), 0) AS total_amount
         FROM orders
+        WHERE DATE(created_at) BETWEEN ? AND ?
         GROUP BY order_status
         ORDER BY total_orders DESC
-    """)
+    """, (from_date, to_date))
     status_report = cursor.fetchall()
 
     cursor.execute("""
@@ -3473,11 +3513,15 @@ def superadmin_download_sales_excel():
             p.category,
             p.stock
         FROM orders o
-        JOIN order_items oi ON o.order_id = oi.order_id
-        LEFT JOIN products p ON oi.product_id = p.product_id
-        LEFT JOIN admin a ON p.admin_id = a.admin_id
+        JOIN order_items oi 
+            ON o.order_id = oi.order_id
+        LEFT JOIN products p 
+            ON oi.product_id = p.product_id
+        LEFT JOIN admin a 
+            ON p.admin_id = a.admin_id
+        WHERE DATE(o.created_at) BETWEEN ? AND ?
         ORDER BY o.created_at DESC
-    """)
+    """, (from_date, to_date))
     full_data = cursor.fetchall()
 
     cursor.close()
@@ -3485,8 +3529,17 @@ def superadmin_download_sales_excel():
 
     wb = Workbook()
 
-    header_fill = PatternFill(start_color="0F172A", end_color="0F172A", fill_type="solid")
-    header_font = Font(color="FFFFFF", bold=True)
+    header_fill = PatternFill(
+        start_color="0F172A",
+        end_color="0F172A",
+        fill_type="solid"
+    )
+
+    header_font = Font(
+        color="FFFFFF",
+        bold=True
+    )
+
     border = Border(
         left=Side(style="thin"),
         right=Side(style="thin"),
@@ -3495,6 +3548,7 @@ def superadmin_download_sales_excel():
     )
 
     def style(ws):
+
         for cell in ws[1]:
             cell.fill = header_fill
             cell.font = header_font
@@ -3507,11 +3561,14 @@ def superadmin_download_sales_excel():
                 cell.alignment = Alignment(horizontal="center")
 
         for col_num in range(1, ws.max_column + 1):
+
             max_length = 0
             col_letter = get_column_letter(col_num)
 
             for row_num in range(1, ws.max_row + 1):
+
                 cell = ws.cell(row=row_num, column=col_num)
+
                 if cell.value:
                     max_length = max(max_length, len(str(cell.value)))
 
@@ -3519,16 +3576,29 @@ def superadmin_download_sales_excel():
 
     ws = wb.active
     ws.title = "Summary"
+
     ws.append(["Metric", "Value"])
+    ws.append(["From Date", from_date])
+    ws.append(["To Date", to_date])
     ws.append(["Total Revenue", float(summary["total_revenue"] or 0)])
     ws.append(["Total Orders", summary["total_orders"] or 0])
     ws.append(["Total Admins", admins_count["total_admins"] or 0])
     ws.append(["Total Products", products_count["total_products"] or 0])
     ws.append(["Total Users", users_count["total_users"] or 0])
+
     style(ws)
 
     ws = wb.create_sheet("Admin Sales")
-    ws.append(["Admin ID", "Admin Name", "Admin Email", "Orders", "Items Sold", "Revenue"])
+
+    ws.append([
+        "Admin ID",
+        "Admin Name",
+        "Admin Email",
+        "Orders",
+        "Items Sold",
+        "Revenue"
+    ])
+
     for r in admin_sales:
         ws.append([
             r["admin_id"],
@@ -3538,56 +3608,93 @@ def superadmin_download_sales_excel():
             r["total_items_sold"],
             float(r["total_revenue"] or 0)
         ])
+
     style(ws)
 
     ws = wb.create_sheet("High Sales")
-    ws.append(["Admin", "Product ID", "Product", "Category", "Qty Sold", "Revenue"])
+
+    ws.append([
+        "Admin",
+        "Product ID",
+        "Product",
+        "Category",
+        "Qty Sold",
+        "Revenue"
+    ])
+
     for r in high_sales:
         ws.append([
             r["admin_name"],
             r["product_id"],
-            r["product_name"] or "Not Sold Yet",
+            r["product_name"],
             r["category"],
             r["quantity_sold"],
             float(r["total_sales"] or 0)
         ])
+
     style(ws)
 
     ws = wb.create_sheet("Low Sales")
-    ws.append(["Admin", "Product ID", "Product", "Category", "Stock", "Qty Sold", "Revenue"])
+
+    ws.append([
+        "Admin",
+        "Product ID",
+        "Product",
+        "Category",
+        "Stock",
+        "Qty Sold",
+        "Revenue"
+    ])
+
     for r in low_sales:
         ws.append([
             r["admin_name"],
             r["product_id"],
-            r["product_name"] or "Not Sold Yet",
+            r["product_name"],
             r["category"],
             r["stock"],
             r["quantity_sold"],
             float(r["total_sales"] or 0)
         ])
+
     style(ws)
 
     ws = wb.create_sheet("Daily Sales")
-    ws.append(["Date", "Orders", "Revenue"])
+
+    ws.append([
+        "Date",
+        "Orders",
+        "Revenue"
+    ])
+
     for r in daily_sales:
         ws.append([
             str(r["sale_date"]),
             r["total_orders"],
             float(r["total_revenue"] or 0)
         ])
+
     style(ws)
 
     ws = wb.create_sheet("Order Status")
-    ws.append(["Status", "Orders", "Amount"])
+
+    ws.append([
+        "Status",
+        "Orders",
+        "Amount"
+    ])
+
     for r in status_report:
         ws.append([
             r["order_status"],
             r["total_orders"],
             float(r["total_amount"] or 0)
         ])
+
     style(ws)
 
     ws = wb.create_sheet("All Orders")
+
     ws.append([
         "Admin Name",
         "Admin Email",
@@ -3622,6 +3729,7 @@ def superadmin_download_sales_excel():
             float(r["item_total"] or 0),
             r["stock"]
         ])
+
     style(ws)
 
     stream = BytesIO()
@@ -3629,11 +3737,16 @@ def superadmin_download_sales_excel():
     stream.seek(0)
 
     response = make_response(stream.read())
-    response.headers["Content-Disposition"] = "attachment; filename=superadmin_full_report.xlsx"
-    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+    response.headers["Content-Disposition"] = (
+        f"attachment; filename=superadmin_sales_report_{from_date}_to_{to_date}.xlsx"
+    )
+
+    response.headers["Content-Type"] = (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
     return response
-
 
 @app.route('/superadmin/categories')
 def superadmin_categories():

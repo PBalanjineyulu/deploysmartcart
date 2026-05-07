@@ -44,20 +44,24 @@
         }
     }
 
-    .calendar-table {
+    .calendar-table,
+    .sales-table {
         width: 100%;
         border-collapse: collapse;
     }
 
     .calendar-table th,
-    .calendar-table td {
+    .calendar-table td,
+    .sales-table th,
+    .sales-table td {
         padding: 10px;
         text-align: center;
         border-bottom: 1px solid #e2e8f0;
         font-size: 14px;
     }
 
-    .calendar-table th {
+    .calendar-table th,
+    .sales-table th {
         background: #0f172a;
         color: white;
     }
@@ -65,23 +69,6 @@
     .calendar-day {
         font-weight: bold;
         color: #2563eb;
-    }
-
-    .sales-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .sales-table th,
-    .sales-table td {
-        padding: 10px;
-        text-align: center;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .sales-table th {
-        background: #0f172a;
-        color: white;
     }
 
     .admin-name {
@@ -110,7 +97,6 @@
 
 <div class="container report-wrapper">
 
-    <!-- HEADER -->
     <div class="report-header">
         <div class="row align-items-center">
 
@@ -124,7 +110,8 @@
             </div>
 
             <div class="col-md-4 text-end">
-                <a href="/superadmin/download-sales-excel" class="btn btn-success">
+                <a href="{{ url_for('superadmin_download_sales_excel', from_date=from_date, to_date=to_date) }}"
+                   class="btn btn-success">
                     Excel
                 </a>
             </div>
@@ -132,16 +119,24 @@
         </div>
     </div>
 
-    <!-- DATE FILTER -->
     <div class="filter-card">
         <form method="GET" action="/superadmin/sales-report" class="row g-3 align-items-end">
 
-            <div class="col-lg-4 col-md-6">
-                <label class="form-label fw-bold">📅 Select Date</label>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-bold">From Date</label>
                 <input type="date"
-                       id="selectedDate"
-                       name="selected_date"
-                       value="{{ selected_date or '' }}"
+                       id="fromDate"
+                       name="from_date"
+                       value="{{ from_date }}"
+                       class="form-control">
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-bold">To Date</label>
+                <input type="date"
+                       id="toDate"
+                       name="to_date"
+                       value="{{ to_date }}"
                        class="form-control">
             </div>
 
@@ -163,22 +158,9 @@
                 </a>
             </div>
 
-            <div class="col-lg-2 col-md-12">
-                {% if selected_date %}
-                <div class="alert alert-info mb-0 py-2 text-center fw-bold">
-                    {{ selected_date }}
-                </div>
-                {% else %}
-                <div class="alert alert-light border mb-0 py-2 text-center fw-bold">
-                    All Sales
-                </div>
-                {% endif %}
-            </div>
-
         </form>
     </div>
 
-    <!-- SUMMARY -->
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="sales-card">
@@ -195,7 +177,50 @@
         </div>
     </div>
 
-    <!-- CHARTS ROW 1 -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="sales-card">
+                <h6>Pending</h6>
+                <h3>{{ pending_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="sales-card">
+                <h6>Confirmed</h6>
+                <h3>{{ confirmed_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="sales-card">
+                <h6>Packed</h6>
+                <h3>{{ packed_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="sales-card">
+                <h6>Shipped</h6>
+                <h3>{{ shipped_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="sales-card">
+                <h6>Delivered</h6>
+                <h3>{{ delivered_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="sales-card">
+                <h6>Cancelled</h6>
+                <h3>{{ cancelled_orders }}</h3>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-3 mb-4">
 
         <div class="col-lg-6">
@@ -218,7 +243,6 @@
 
     </div>
 
-    <!-- CHARTS ROW 2 -->
     <div class="row g-3 mb-4">
 
         <div class="col-lg-6">
@@ -242,6 +266,7 @@
                                 <th>Revenue</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {% for i in range(daily_labels|length) %}
                             <tr>
@@ -262,7 +287,6 @@
 
     </div>
 
-    <!-- TABLE -->
     <div class="chart-card">
         <h6>Admin Sales Table</h6>
 
@@ -301,8 +325,11 @@
 <script>
 function filterToday() {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById("selectedDate").value = today;
-    document.getElementById("selectedDate").form.submit();
+
+    document.getElementById("fromDate").value = today;
+    document.getElementById("toDate").value = today;
+
+    document.getElementById("fromDate").form.submit();
 }
 
 new Chart(document.getElementById('adminChart'), {
@@ -344,7 +371,14 @@ new Chart(document.getElementById('pieChart'), {
         labels: {{ status_labels | safe }},
         datasets: [{
             data: {{ status_values | safe }},
-            backgroundColor: ['#16a34a','#f59e0b','#dc2626','#2563eb']
+            backgroundColor: [
+                '#f59e0b',
+                '#2563eb',
+                '#8b5cf6',
+                '#0ea5e9',
+                '#16a34a',
+                '#dc2626'
+            ]
         }]
     },
     options: {
