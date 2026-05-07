@@ -1,0 +1,245 @@
+{% extends "superadmin/base_superadmin.html" %}
+
+{% block content %}
+
+<style>
+
+    .details-page {
+        padding: 30px 0;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #0f172a, #2563eb);
+        color: white;
+        padding: 28px;
+        border-radius: 18px;
+        margin-bottom: 25px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+    }
+
+    .page-header h2 {
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        margin-bottom: 25px;
+    }
+
+    .info-label {
+        font-size: 13px;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        font-size: 17px;
+        font-weight: 700;
+        color: #0f172a;
+        word-break: break-word;
+    }
+
+    .price-text {
+        color: #15803d;
+        font-size: 26px;
+        font-weight: 800;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    }
+
+    .custom-table thead th {
+        background: #0f172a;
+        color: white;
+        padding: 14px;
+        font-size: 13px;
+        text-transform: uppercase;
+    }
+
+    .custom-table tbody td {
+        padding: 14px;
+        vertical-align: middle;
+    }
+
+    .product-name {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .total-text {
+        font-weight: 800;
+        color: #15803d;
+    }
+
+    .status-badge {
+        padding: 7px 13px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .status-delivered {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+</style>
+
+<div class="details-page">
+    <div class="container-fluid">
+
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+            <div>
+                <h2>🧾 Order Details</h2>
+                <p class="mb-0 mt-2">
+                    Complete information about this customer order.
+                </p>
+            </div>
+
+            <a href="/superadmin/orders"
+               class="btn btn-light fw-bold">
+                ← Back
+            </a>
+
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-4">
+
+                <div class="info-card">
+                    <div class="info-label">Order ID</div>
+                    <div class="info-value">
+                        #{{ order.order_id }}
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Customer</div>
+                    <div class="info-value">
+                        {{ order.username }}
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Customer Email</div>
+                    <div class="info-value">
+                        {{ order.user_email }}
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Payment Status</div>
+                    <div class="info-value">
+                        {{ order.payment_status }}
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Order Status</div>
+
+                    {% if order.order_status == 'Delivered' %}
+                        <span class="status-badge status-delivered">
+                            {{ order.order_status }}
+                        </span>
+
+                    {% elif order.order_status == 'Cancelled' %}
+                        <span class="status-badge status-cancelled">
+                            {{ order.order_status }}
+                        </span>
+
+                    {% else %}
+                        <span class="status-badge status-pending">
+                            {{ order.order_status }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="info-card">
+                    <div class="info-label">Total Amount</div>
+                    <div class="price-text">
+                        ₹{{ order.amount }}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-8">
+
+                <div class="table-card">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle custom-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for item in items %}
+                                <tr>
+
+                                    <td class="product-name">
+                                        {{ item.product_name }}
+                                    </td>
+
+                                    <td>
+                                        {{ item.quantity }}
+                                    </td>
+
+                                    <td>
+                                        ₹{{ item.price }}
+                                    </td>
+
+                                    <td class="total-text">
+                                        ₹{{ item.total }}
+                                    </td>
+
+                                </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
