@@ -2875,9 +2875,6 @@ def edit_address(address_id):
     return redirect('/user/shipping-address')
 
 
-
-
-
 @app.route('/admin/sales-report')
 def admin_sales_report():
 
@@ -2901,6 +2898,9 @@ def admin_sales_report():
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # =========================
+    # DAILY SALES
+    # =========================
     cursor.execute(f"""
         SELECT 
             DATE(o.created_at) AS sale_date,
@@ -2914,8 +2914,12 @@ def admin_sales_report():
         GROUP BY DATE(o.created_at)
         ORDER BY sale_date
     """, params)
+
     sales = cursor.fetchall()
 
+    # =========================
+    # SUMMARY
+    # =========================
     cursor.execute(f"""
         SELECT 
             COALESCE(SUM(oi.total), 0) AS total_revenue,
@@ -2926,9 +2930,14 @@ def admin_sales_report():
         WHERE p.admin_id = ?
         {date_filter}
     """, params)
+
     summary = cursor.fetchone()
 
+    # =========================
+    # ORDER STATUS COUNTS
+    # =========================
     def count_status(status):
+
         cursor.execute(f"""
             SELECT COUNT(DISTINCT o.order_id) AS total
             FROM orders o
@@ -2938,7 +2947,10 @@ def admin_sales_report():
             {date_filter}
             AND o.order_status = ?
         """, [admin_id, from_date, to_date, status])
-        return cursor.fetchone()["total"] or 0
+
+        result = cursor.fetchone()
+
+        return result["total"] or 0
 
     pending_orders = count_status("Pending")
     confirmed_orders = count_status("Confirmed")
@@ -2947,30 +2959,51 @@ def admin_sales_report():
     delivered_orders = count_status("Delivered")
     cancelled_orders = count_status("Cancelled")
 
+    # =========================
+    # PRODUCT SALES
+    # =========================
     cursor.execute(f"""
         SELECT 
             p.product_id,
             p.name AS product_name,
             p.price,
             p.stock,
+
             COALESCE(SUM(oi.quantity), 0) AS sold_quantity,
             COALESCE(SUM(oi.total), 0) AS product_revenue
+
         FROM products p
-        LEFT JOIN order_items oi ON p.product_id = oi.product_id
-        LEFT JOIN orders o ON oi.order_id = o.order_id
+
+        LEFT JOIN order_items oi 
+            ON p.product_id = oi.product_id
+
+        LEFT JOIN orders o 
+            ON oi.order_id = o.order_id
+
         WHERE p.admin_id = ?
+
         AND (
             o.order_id IS NULL
             OR DATE(o.created_at) BETWEEN ? AND ?
         )
-        GROUP BY p.product_id, p.name, p.price, p.stock
+
+        GROUP BY 
+            p.product_id,
+            p.name,
+            p.price,
+            p.stock
+
         ORDER BY sold_quantity DESC
     """, params)
+
     product_sales = cursor.fetchall()
 
     highest_selling_product = product_sales[0] if product_sales else None
     lowest_selling_product = product_sales[-1] if product_sales else None
 
+    # =========================
+    # LOW STOCK PRODUCTS
+    # =========================
     cursor.execute("""
         SELECT 
             product_id,
@@ -2981,13 +3014,35 @@ def admin_sales_report():
         ORDER BY stock ASC
         LIMIT 5
     """, (admin_id,))
+
     low_stock_products = cursor.fetchall()
+
+    # =========================
+    # HIGH STOCK PRODUCTS
+    # =========================
+    cursor.execute("""
+        SELECT 
+            product_id,
+            name AS product_name,
+            stock
+        FROM products
+        WHERE admin_id = ?
+        ORDER BY stock DESC
+        LIMIT 5
+    """, (admin_id,))
+
+    highest_stock_products = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
+    # =========================
+    # DAILY SALES FORMAT
+    # =========================
     daily_sales = []
+
     for row in sales:
+
         daily_sales.append({
             "date": str(row["sale_date"]),
             "orders": row["total_orders"],
@@ -2997,7 +3052,11 @@ def admin_sales_report():
     daily_labels = [row["date"] for row in daily_sales]
     daily_revenue = [row["revenue"] for row in daily_sales]
 
+    # =========================
+    # RENDER TEMPLATE
+    # =========================
     return render_template(
+
         "admin/sales_report.html",
 
         from_date=from_date,
@@ -3018,15 +3077,19 @@ def admin_sales_report():
         daily_revenue=daily_revenue,
 
         product_sales=product_sales,
+
         highest_selling_product=highest_selling_product,
         lowest_selling_product=lowest_selling_product,
-        low_stock_products=low_stock_products
+
+        low_stock_products=low_stock_products,
+        highest_stock_products=highest_stock_products
     )
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 from io import BytesIO
 from flask import make_response
+
 
 @app.route('/admin/download-sales-excel')
 def download_sales_excel():
@@ -3036,6 +3099,14 @@ def download_sales_excel():
         return redirect('/admin-login')
 
     admin_id = session['admin_id']
+
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
+
+    if not from_date or not to_date:
+        today = datetime.now().strftime('%Y-%m-%d')
+        from_date = today
+        to_date = today
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -3047,13 +3118,15 @@ def download_sales_excel():
             oi.product_name,
             oi.quantity,
             oi.price,
-            oi.total
+            oi.total,
+            o.order_status
         FROM orders o
         JOIN order_items oi ON o.order_id = oi.order_id
         JOIN products p ON oi.product_id = p.product_id
         WHERE p.admin_id = ?
+        AND DATE(o.created_at) BETWEEN ? AND ?
         ORDER BY o.created_at DESC
-    """, (admin_id,))
+    """, (admin_id, from_date, to_date))
 
     rows = cursor.fetchall()
 
@@ -3064,10 +3137,18 @@ def download_sales_excel():
     ws = wb.active
     ws.title = "Sales Report"
 
-    ws.append(["Date", "Order ID", "Product Name", "Quantity", "Price", "Total"])
+    ws.merge_cells("A1:G1")
+    ws["A1"] = f"SmartCart Sales Report ({from_date} to {to_date})"
+    ws["A1"].font = Font(size=16, bold=True, color="FFFFFF")
+    ws["A1"].fill = PatternFill(start_color="0F172A", end_color="0F172A", fill_type="solid")
+    ws["A1"].alignment = Alignment(horizontal="center")
 
-    header_fill = PatternFill(start_color="0F172A", end_color="0F172A", fill_type="solid")
+    ws.append([])
+    ws.append(["Date", "Order ID", "Product Name", "Quantity", "Price", "Total", "Status"])
+
+    header_fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
     header_font = Font(color="FFFFFF", bold=True)
+
     border = Border(
         left=Side(style="thin"),
         right=Side(style="thin"),
@@ -3075,18 +3156,21 @@ def download_sales_excel():
         bottom=Side(style="thin")
     )
 
-    for cell in ws[1]:
+    for cell in ws[3]:
         cell.fill = header_fill
         cell.font = header_font
         cell.alignment = Alignment(horizontal="center")
         cell.border = border
 
     total_revenue = 0
+    total_orders = set()
 
     for row in rows:
         price = float(row['price'] or 0)
         total = float(row['total'] or 0)
+
         total_revenue += total
+        total_orders.add(row['order_id'])
 
         ws.append([
             str(row['sale_date']),
@@ -3094,20 +3178,28 @@ def download_sales_excel():
             row['product_name'],
             row['quantity'],
             price,
-            total
+            total,
+            row['order_status']
         ])
 
-    for row in ws.iter_rows(min_row=2):
-        for cell in row:
+    for row_cells in ws.iter_rows(min_row=4):
+        for cell in row_cells:
             cell.border = border
             cell.alignment = Alignment(horizontal="center")
 
     last_row = ws.max_row + 2
-    ws.cell(row=last_row, column=5).value = "Total Revenue"
-    ws.cell(row=last_row, column=6).value = total_revenue
+
+    ws.cell(row=last_row, column=5).value = "Total Orders"
+    ws.cell(row=last_row, column=6).value = len(total_orders)
+
+    ws.cell(row=last_row + 1, column=5).value = "Total Revenue"
+    ws.cell(row=last_row + 1, column=6).value = total_revenue
 
     ws.cell(row=last_row, column=5).font = Font(bold=True)
     ws.cell(row=last_row, column=6).font = Font(bold=True)
+
+    ws.cell(row=last_row + 1, column=5).font = Font(bold=True)
+    ws.cell(row=last_row + 1, column=6).font = Font(bold=True)
 
     for col_num in range(1, ws.max_column + 1):
         max_length = 0
@@ -3115,6 +3207,7 @@ def download_sales_excel():
 
         for row_num in range(1, ws.max_row + 1):
             cell = ws.cell(row=row_num, column=col_num)
+
             if cell.value:
                 max_length = max(max_length, len(str(cell.value)))
 
@@ -3125,7 +3218,7 @@ def download_sales_excel():
     file_stream.seek(0)
 
     response = make_response(file_stream.read())
-    response.headers["Content-Disposition"] = "attachment; filename=admin_sales_report.xlsx"
+    response.headers["Content-Disposition"] = f"attachment; filename=sales_report_{from_date}_to_{to_date}.xlsx"
     response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
     return response

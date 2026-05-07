@@ -105,11 +105,6 @@
         color: var(--orange);
     }
 
-    .icon-red {
-        background: rgba(220,38,38,0.12);
-        color: var(--red);
-    }
-
     .chart-card h4,
     .summary-card h4 {
         font-weight: 800;
@@ -182,11 +177,6 @@
         color: var(--orange);
     }
 
-    .status-danger {
-        background: rgba(220,38,38,0.12);
-        color: var(--red);
-    }
-
     .summary-row {
         display: flex;
         justify-content: space-between;
@@ -243,6 +233,7 @@
 
     <div class="report-header">
         <div class="row align-items-center gy-3">
+
             <div class="col-12 col-lg-4">
                 <a href="/admin-dashboard" class="btn btn-light">
                     <i class="bi bi-arrow-left"></i> Back
@@ -250,144 +241,179 @@
             </div>
 
             <div class="col-12 col-lg-4 text-center">
-                <h2><i class="bi bi-graph-up-arrow"></i> Sales Report</h2>
-                <p>Analyze daily sales, revenue, orders, stock, and product performance.</p>
+                <h2>
+                    <i class="bi bi-graph-up-arrow"></i>
+                    Sales Report
+                </h2>
+
+                <p>
+                    Analyze sales and revenue with real-time reports.
+                </p>
             </div>
 
             <div class="col-12 col-lg-4 text-lg-end">
-                <a href="/admin/download-sales-excel?from_date={{ from_date }}&to_date={{ to_date }}"
+                <a href="{{ url_for('download_sales_excel', from_date=from_date, to_date=to_date) }}"
                    class="btn btn-success fw-bold px-4 shadow">
-                    <i class="bi bi-file-earmark-excel"></i> Excel
+
+                    <i class="bi bi-file-earmark-excel"></i>
+                    Excel
                 </a>
             </div>
+
         </div>
     </div>
 
     <div class="filter-box">
+
         <form method="GET" action="/admin/sales-report">
+
             <div class="row g-3 align-items-end">
+
                 <div class="col-12 col-md-4">
-                    <label class="form-label fw-semibold">From Date</label>
-                    <input type="date" name="from_date" value="{{ from_date }}" class="form-control">
+                    <label class="form-label fw-semibold">
+                        From Date
+                    </label>
+
+                    <input type="date"
+                           name="from_date"
+                           value="{{ from_date }}"
+                           class="form-control">
                 </div>
 
                 <div class="col-12 col-md-4">
-                    <label class="form-label fw-semibold">To Date</label>
-                    <input type="date" name="to_date" value="{{ to_date }}" class="form-control">
+                    <label class="form-label fw-semibold">
+                        To Date
+                    </label>
+
+                    <input type="date"
+                           name="to_date"
+                           value="{{ to_date }}"
+                           class="form-control">
                 </div>
 
                 <div class="col-12 col-md-4">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-funnel"></i> Filter Report
+                    <button type="submit"
+                            class="btn btn-primary w-100">
+
+                        <i class="bi bi-funnel"></i>
+                        Filter Report
                     </button>
                 </div>
+
             </div>
+
         </form>
+
     </div>
 
     <div class="row g-4 mb-4">
+
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="sales-card">
-                <div class="icon-box"><i class="bi bi-currency-rupee"></i></div>
+
+                <div class="icon-box">
+                    <i class="bi bi-currency-rupee"></i>
+                </div>
+
                 <h6>Total Revenue</h6>
+
                 <h3>₹{{ total_revenue }}</h3>
+
             </div>
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="sales-card">
-                <div class="icon-box icon-green"><i class="bi bi-bag-check"></i></div>
+
+                <div class="icon-box icon-green">
+                    <i class="bi bi-bag-check"></i>
+                </div>
+
                 <h6>Total Orders</h6>
+
                 <h3>{{ total_orders }}</h3>
+
             </div>
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="sales-card">
-                <div class="icon-box icon-green"><i class="bi bi-check-circle"></i></div>
+
+                <div class="icon-box icon-green">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+
                 <h6>Delivered Orders</h6>
+
                 <h3>{{ completed_orders }}</h3>
+
             </div>
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="sales-card">
-                <div class="icon-box icon-orange"><i class="bi bi-clock-history"></i></div>
+
+                <div class="icon-box icon-orange">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+
                 <h6>Pending Orders</h6>
+
                 <h3>{{ pending_orders }}</h3>
+
             </div>
         </div>
+
     </div>
 
     <div class="row g-4 mb-4">
-        <div class="col-12 col-lg-6">
-            <div class="sales-card">
-                <div class="icon-box icon-green"><i class="bi bi-trophy"></i></div>
-                <h6>Highest Selling Product</h6>
-                {% if highest_selling_product %}
-                    <h3>{{ highest_selling_product.product_name }}</h3>
-                    <p class="mb-1 text-muted">Sold: {{ highest_selling_product.sold_quantity }}</p>
-                    <p class="mb-0 fw-bold">Revenue: ₹{{ highest_selling_product.product_revenue }}</p>
-                {% else %}
-                    <h3>No Sales</h3>
-                {% endif %}
-            </div>
-        </div>
 
-        <div class="col-12 col-lg-6">
-            <div class="sales-card">
-                <div class="icon-box icon-red"><i class="bi bi-graph-down-arrow"></i></div>
-                <h6>Lowest Selling Product</h6>
-                {% if lowest_selling_product %}
-                    <h3>{{ lowest_selling_product.product_name }}</h3>
-                    <p class="mb-1 text-muted">Sold: {{ lowest_selling_product.sold_quantity }}</p>
-                    <p class="mb-0 fw-bold">Revenue: ₹{{ lowest_selling_product.product_revenue }}</p>
-                {% else %}
-                    <h3>No Sales</h3>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4 mb-4">
         <div class="col-12 col-lg-7">
             <div class="chart-card">
-                <h4><i class="bi bi-bar-chart"></i> Daily Revenue Chart</h4>
+
+                <h4>
+                    <i class="bi bi-bar-chart"></i>
+                    Daily Revenue Chart
+                </h4>
+
                 <div class="chart-box">
                     <canvas id="dailySalesChart"></canvas>
                 </div>
+
             </div>
         </div>
 
         <div class="col-12 col-lg-5">
             <div class="chart-card">
-                <h4><i class="bi bi-pie-chart"></i> Order Status Pie Chart</h4>
+
+                <h4>
+                    <i class="bi bi-pie-chart"></i>
+                    Order Status Pie Chart
+                </h4>
+
                 <div class="pie-box">
                     <canvas id="orderPieChart"></canvas>
                 </div>
+
             </div>
         </div>
+
     </div>
 
     <div class="row g-4 mb-4">
+
         <div class="col-12 col-lg-5">
+
             <div class="summary-card">
-                <h4><i class="bi bi-wallet2"></i> Payment Summary</h4>
+
+                <h4>
+                    <i class="bi bi-wallet2"></i>
+                    Payment Summary
+                </h4>
 
                 <div class="summary-row">
                     <span>Online Payments</span>
                     <strong>₹{{ total_revenue }}</strong>
-                </div>
-
-                <div class="summary-row">
-                    <span>Average Order Value</span>
-                    <strong>
-                        {% if total_orders %}
-                            ₹{{ total_revenue // total_orders }}
-                        {% else %}
-                            ₹0
-                        {% endif %}
-                    </strong>
                 </div>
 
                 <div class="summary-row">
@@ -396,43 +422,37 @@
                 </div>
 
                 <div class="summary-row">
-                    <span>Delivery Rate</span>
-                    <strong>
-                        {% if total_orders %}
-                            {{ (completed_orders * 100) // total_orders }}%
-                        {% else %}
-                            0%
-                        {% endif %}
-                    </strong>
+                    <span>Shipped Orders</span>
+                    <strong>{{ shipped_orders }}</strong>
                 </div>
 
-                <div class="mt-3">
-                    <div class="d-flex justify-content-between mb-2">
-                        <strong>Order Delivery</strong>
-                        <span>
-                            {% if total_orders %}
-                                {{ (completed_orders * 100) // total_orders }}%
-                            {% else %}
-                                0%
-                            {% endif %}
-                        </span>
-                    </div>
-
-                    <div class="progress">
-                        <div class="progress-bar bg-success"
-                            style="width: {% if total_orders %}{{ (completed_orders * 100) // total_orders }}{% else %}0{% endif %}%;">
-                        </div>
-                    </div>
+                <div class="summary-row">
+                    <span>Packed Orders</span>
+                    <strong>{{ packed_orders }}</strong>
                 </div>
+
+                <div class="summary-row">
+                    <span>Confirmed Orders</span>
+                    <strong>{{ confirmed_orders }}</strong>
+                </div>
+
             </div>
+
         </div>
 
         <div class="col-12 col-lg-7">
+
             <div class="summary-card">
-                <h4><i class="bi bi-calendar3"></i> Daily Sales Calendar</h4>
+
+                <h4>
+                    <i class="bi bi-calendar3"></i>
+                    Daily Sales Report
+                </h4>
 
                 <div class="table-responsive">
+
                     <table class="calendar-table">
+
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -441,111 +461,132 @@
                                 <th>Status</th>
                             </tr>
                         </thead>
+
                         <tbody>
+
                             {% for sale in daily_sales %}
+
                             <tr>
-                                <td><div class="sales-day">{{ sale.date }}</div></td>
+
+                                <td>
+                                    <div class="sales-day">
+                                        {{ sale.date }}
+                                    </div>
+                                </td>
+
                                 <td>{{ sale.orders }}</td>
+
                                 <td>₹{{ sale.revenue }}</td>
-                                <td><span class="status-pill status-success">Active</span></td>
+
+                                <td>
+                                    <span class="status-pill status-success">
+                                        Active
+                                    </span>
+                                </td>
+
                             </tr>
+
                             {% else %}
+
                             <tr>
-                                <td colspan="4">No sales found for selected date.</td>
+                                <td colspan="4">
+                                    No sales found.
+                                </td>
                             </tr>
+
                             {% endfor %}
+
                         </tbody>
+
                     </table>
+
                 </div>
 
             </div>
+
         </div>
+
     </div>
 
-    <div class="row g-4 mb-4">
+    <div class="row g-4">
+
         <div class="col-12">
+
             <div class="summary-card">
-                <h4><i class="bi bi-box-seam"></i> Product Wise Sales & Stock</h4>
+
+                <h4>
+                    <i class="bi bi-box-seam"></i>
+                    Product Wise Sales
+                </h4>
 
                 <div class="table-responsive">
+
                     <table class="calendar-table">
+
                         <thead>
                             <tr>
                                 <th>Product</th>
                                 <th>Price</th>
                                 <th>Sold Qty</th>
                                 <th>Revenue</th>
-                                <th>Current Stock</th>
+                                <th>Stock</th>
                             </tr>
                         </thead>
+
                         <tbody>
+
                             {% for product in product_sales %}
+
                             <tr>
+
                                 <td>{{ product.product_name }}</td>
+
                                 <td>₹{{ product.price }}</td>
+
                                 <td>{{ product.sold_quantity }}</td>
+
                                 <td>₹{{ product.product_revenue }}</td>
+
                                 <td>
-                                    {% if product.stock <= 3 %}
-                                        <span class="status-pill status-danger">{{ product.stock }}</span>
-                                    {% elif product.stock <= 10 %}
-                                        <span class="status-pill status-warning">{{ product.stock }}</span>
+
+                                    {% if product.stock <= 5 %}
+
+                                        <span class="status-pill status-warning">
+                                            {{ product.stock }}
+                                        </span>
+
                                     {% else %}
-                                        <span class="status-pill status-success">{{ product.stock }}</span>
+
+                                        <span class="status-pill status-success">
+                                            {{ product.stock }}
+                                        </span>
+
                                     {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                            {% else %}
+
+                            <tr>
+                                <td colspan="5">
+                                    No products found.
                                 </td>
                             </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="5">No product sales found.</td>
-                            </tr>
+
                             {% endfor %}
+
                         </tbody>
+
                     </table>
+
                 </div>
 
             </div>
+
         </div>
-    </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="summary-card">
-                <h4><i class="bi bi-exclamation-triangle"></i> Low Stock Products</h4>
-
-                <div class="table-responsive">
-                    <table class="calendar-table">
-                        <thead>
-                            <tr>
-                                <th>Product ID</th>
-                                <th>Product Name</th>
-                                <th>Available Stock</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in low_stock_products %}
-                            <tr>
-                                <td>{{ product.product_id }}</td>
-                                <td>{{ product.product_name }}</td>
-                                <td>
-                                    {% if product.stock <= 3 %}
-                                        <span class="status-pill status-danger">{{ product.stock }}</span>
-                                    {% else %}
-                                        <span class="status-pill status-warning">{{ product.stock }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="3">No low-stock products found.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-            </div>
-        </div>
     </div>
 
 </div>
@@ -553,13 +594,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+
     const dailyLabels = {{ daily_labels | safe }};
     const dailyRevenue = {{ daily_revenue | safe }};
 
     new Chart(document.getElementById('dailySalesChart'), {
+
         type: 'bar',
+
         data: {
+
             labels: dailyLabels,
+
             datasets: [{
                 label: 'Revenue ₹',
                 data: dailyRevenue,
@@ -567,22 +613,37 @@
                 borderRadius: 10
             }]
         },
+
         options: {
             responsive: true,
             maintainAspectRatio: false,
+
             scales: {
                 y: {
                     beginAtZero: true
                 }
             }
         }
+
     });
 
     new Chart(document.getElementById('orderPieChart'), {
+
         type: 'doughnut',
+
         data: {
-            labels: ['Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered', 'Cancelled'],
+
+            labels: [
+                'Pending',
+                'Confirmed',
+                'Packed',
+                'Shipped',
+                'Delivered',
+                'Cancelled'
+            ],
+
             datasets: [{
+
                 data: [
                     {{ pending_orders }},
                     {{ confirmed_orders }},
@@ -591,6 +652,7 @@
                     {{ completed_orders }},
                     {{ cancelled_orders }}
                 ],
+
                 backgroundColor: [
                     '#f59e0b',
                     '#2563eb',
@@ -599,20 +661,25 @@
                     '#16a34a',
                     '#dc2626'
                 ],
+
                 borderWidth: 0
             }]
         },
+
         options: {
             responsive: true,
             maintainAspectRatio: false,
             cutout: '62%',
+
             plugins: {
                 legend: {
                     position: 'bottom'
                 }
             }
         }
+
     });
+
 </script>
 
 {% endblock %}
