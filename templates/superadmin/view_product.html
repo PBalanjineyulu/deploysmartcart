@@ -1,0 +1,185 @@
+{% extends "superadmin/base_superadmin.html" %}
+
+{% block title %}View Product{% endblock %}
+
+{% block content %}
+
+<style>
+    .view-page {
+        padding: 30px 0;
+    }
+
+    .product-card {
+        background: #fff;
+        border-radius: 22px;
+        padding: 28px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    }
+
+    .product-image {
+        width: 100%;
+        max-width: 350px;
+        height: 350px;
+        object-fit: cover;
+        border-radius: 18px;
+        border: 1px solid #e5e7eb;
+        background: #f8fafc;
+    }
+
+    .product-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 15px;
+    }
+
+    .info-label {
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 17px;
+        color: #0f172a;
+        margin-bottom: 18px;
+    }
+
+    .price-box {
+        font-size: 28px;
+        font-weight: 800;
+        color: #16a34a;
+        margin-bottom: 20px;
+    }
+
+    .category-badge {
+        display: inline-block;
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .admin-badge {
+        display: inline-block;
+        background: #ede9fe;
+        color: #5b21b6;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-weight: 600;
+    }
+
+    .btn-back {
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+
+        .product-card {
+            padding: 20px;
+        }
+
+        .product-title {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+
+        .product-image {
+            height: 280px;
+        }
+    }
+</style>
+
+<div class="container view-page">
+
+    <div class="mb-4">
+        <a href="/superadmin/products" class="btn btn-dark btn-back">
+            ← Back
+        </a>
+    </div>
+
+    <div class="product-card">
+
+        <div class="row align-items-center g-4">
+
+            <div class="col-lg-5 text-center">
+
+                {% if product.image %}
+                <img src="{{ url_for('static', filename='uploads/product_images/' ~ product.image) }}"
+                     alt="{{ product.name }}"
+                     class="product-image">
+                {% else %}
+                <div class="text-muted">No Image Available</div>
+                {% endif %}
+
+            </div>
+
+            <div class="col-lg-7">
+
+                <h1 class="product-title">
+                    {{ product.name }}
+                </h1>
+
+                <div class="category-badge">
+                    {{ product.category }}
+                </div>
+
+                <div class="price-box">
+                    ₹{{ product.price }}
+                </div>
+
+                <div class="info-label">
+                    Description
+                </div>
+
+                <div class="info-value">
+                    {{ product.description }}
+                </div>
+
+                <div class="info-label">
+                    Product ID
+                </div>
+
+                <div class="info-value">
+                    #{{ product.product_id }}
+                </div>
+
+                <div class="info-label">
+                    Stock
+                </div>
+
+                <div class="info-value">
+                    {{ product.stock if product.stock else 0 }}
+                </div>
+
+                <div class="info-label">
+                    Admin
+                </div>
+
+                <div class="info-value">
+                    <span class="admin-badge">
+                        {{ product.admin_name }}
+                    </span>
+                </div>
+
+                <div class="info-label mt-3">
+                    Admin Email
+                </div>
+
+                <div class="info-value">
+                    {{ product.admin_email }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

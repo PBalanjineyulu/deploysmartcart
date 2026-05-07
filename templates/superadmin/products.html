@@ -29,14 +29,11 @@
         overflow: hidden;
     }
 
-    .table-responsive {
-        border-radius: 14px;
-    }
-
     .custom-table {
+        width: 100%;
         margin-bottom: 0;
         vertical-align: middle;
-        white-space: nowrap;
+        table-layout: auto;
     }
 
     .custom-table thead th {
@@ -46,11 +43,13 @@
         font-size: 14px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        white-space: nowrap;
     }
 
     .custom-table tbody td {
         padding: 14px;
         font-size: 15px;
+        vertical-align: middle;
     }
 
     .custom-table tbody tr:hover {
@@ -69,6 +68,9 @@
     .product-name {
         font-weight: 700;
         color: #0f172a;
+        max-width: 420px;
+        white-space: normal;
+        word-break: break-word;
     }
 
     .category-badge {
@@ -78,11 +80,13 @@
         border-radius: 999px;
         font-size: 13px;
         font-weight: 600;
+        display: inline-block;
     }
 
     .price-text {
         font-weight: 700;
         color: #15803d;
+        white-space: nowrap;
     }
 
     .admin-badge {
@@ -92,6 +96,15 @@
         border-radius: 999px;
         font-size: 13px;
         font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .action-btn {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 7px 14px;
+        white-space: nowrap;
     }
 
     @media (max-width: 768px) {
@@ -102,6 +115,7 @@
         .page-header {
             padding: 20px;
             border-radius: 14px;
+            text-align: center;
         }
 
         .page-header h2 {
@@ -130,8 +144,16 @@
     <div class="container-fluid">
 
         <div class="page-header">
-            <h2>📦 All Products</h2>
-            <p class="mb-0 mt-2">Monitor all products added by admins across the platform.</p>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2>📦 All Products</h2>
+                    <p class="mb-0 mt-2">Monitor all products added by admins across the platform.</p>
+                </div>
+
+                <a href="/superadmin/dashboard" class="btn btn-light fw-bold">
+                    ← Back
+                </a>
+            </div>
         </div>
 
         <div class="table-card">
@@ -145,6 +167,7 @@
                             <th>Category</th>
                             <th>Price</th>
                             <th>Admin</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
@@ -164,12 +187,32 @@
                             </td>
 
                             <td class="product-name">{{ product.name }}</td>
-                            <td><span class="category-badge">{{ product.category }}</span></td>
+
+                            <td>
+                                <span class="category-badge">
+                                    {{ product.category }}
+                                </span>
+                            </td>
+
                             <td class="price-text">₹{{ product.price }}</td>
+
                             <td>
                                 <span class="admin-badge">
                                     {{ product.admin_name if product.admin_name else 'Not Assigned' }}
                                 </span>
+                            </td>
+
+                            <td>
+                                <a href="/superadmin/view-product/{{ product.product_id }}"
+                                   class="btn btn-primary btn-sm action-btn">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-muted">
+                                No products found.
                             </td>
                         </tr>
                         {% endfor %}

@@ -3854,7 +3854,35 @@ def category_products(category):
         products=products,
         category=category
     )
+@app.route('/superadmin/view-product/<int:product_id>')
+def superadmin_view_product(product_id):
 
+    if not superadmin_required():
+        return redirect('/superadmin-login')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            products.*,
+            admin.name AS admin_name,
+            admin.email AS admin_email
+        FROM products
+        LEFT JOIN admin ON products.admin_id = admin.admin_id
+        WHERE products.product_id = ?
+    """, (product_id,))
+
+    product = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not product:
+        flash("Product not found!", "danger")
+        return redirect('/superadmin/products')
+
+    return render_template("superadmin/view_product.html", product=product)
 
 if __name__=="__main__":
     app.run(debug=True)
