@@ -2886,78 +2886,152 @@ def admin_sales_report():
 
     admin_id = session['admin_id']
 
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
+
+    date_filter = ""
+    params = [admin_id]
+
+    if from_date and to_date:
+        date_filter = " AND DATE(o.created_at) BETWEEN ? AND ?"
+        params.extend([from_date, to_date])
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
+    # =====================================================
+    # DAILY SALES
+    # =====================================================
+    cursor.execute(f"""
         SELECT 
             DATE(o.created_at) AS sale_date,
-            SUM(oi.total) AS total_sales,
+            COALESCE(SUM(oi.total), 0) AS total_sales,
             COUNT(DISTINCT o.order_id) AS total_orders
         FROM orders o
         JOIN order_items oi ON o.order_id = oi.order_id
         JOIN products p ON oi.product_id = p.product_id
         WHERE p.admin_id = ?
+        {date_filter}
         GROUP BY DATE(o.created_at)
         ORDER BY sale_date
-    """, (admin_id,))
+    """, params)
+
     sales = cursor.fetchall()
 
-    cursor.execute("""
+    # =====================================================
+    # TOTAL SUMMARY
+    # =====================================================
+    cursor.execute(f"""
         SELECT 
-            IFNULL(SUM(oi.total), 0) AS total_revenue,
+            COALESCE(SUM(oi.total), 0) AS total_revenue,
             COUNT(DISTINCT o.order_id) AS total_orders
         FROM orders o
         JOIN order_items oi ON o.order_id = oi.order_id
         JOIN products p ON oi.product_id = p.product_id
         WHERE p.admin_id = ?
-    """, (admin_id,))
+        {date_filter}
+    """, params)
+
     summary = cursor.fetchone()
 
-    cursor.execute("""
-        SELECT IFNULL(SUM(oi.total), 0) AS today_sales
-        FROM orders o
-        JOIN order_items oi ON o.order_id = oi.order_id
-        JOIN products p ON oi.product_id = p.product_id
-        WHERE p.admin_id = ?
-        AND DATE(o.created_at) = DATE('now')
-    """, (admin_id,))
-    today = cursor.fetchone()
-
-    cursor.execute("""
-        SELECT COUNT(DISTINCT o.order_id) AS completed_orders
-        FROM orders o
-        JOIN order_items oi ON o.order_id = oi.order_id
-        JOIN products p ON oi.product_id = p.product_id
-        WHERE p.admin_id = ?
-        AND o.order_status = 'Delivered'
-    """, (admin_id,))
-    completed = cursor.fetchone()
-
-    cursor.execute("""
+    # =====================================================
+    # PENDING
+    # =====================================================
+    cursor.execute(f"""
         SELECT COUNT(DISTINCT o.order_id) AS pending_orders
         FROM orders o
         JOIN order_items oi ON o.order_id = oi.order_id
         JOIN products p ON oi.product_id = p.product_id
         WHERE p.admin_id = ?
-        AND o.order_status IN ('Pending', 'Placed')
-    """, (admin_id,))
+        {date_filter}
+        AND o.order_status = 'Pending'
+    """, params)
+
     pending = cursor.fetchone()
 
-    cursor.execute("""
+    # =====================================================
+    # CONFIRMED
+    # =====================================================
+    cursor.execute(f"""
+        SELECT COUNT(DISTINCT o.order_id) AS confirmed_orders
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE p.admin_id = ?
+        {date_filter}
+        AND o.order_status = 'Confirmed'
+    """, params)
+
+    confirmed = cursor.fetchone()
+
+    # =====================================================
+    # PACKED
+    # =====================================================
+    cursor.execute(f"""
+        SELECT COUNT(DISTINCT o.order_id) AS packed_orders
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE p.admin_id = ?
+        {date_filter}
+        AND o.order_status = 'Packed'
+    """, params)
+
+    packed = cursor.fetchone()
+
+    # =====================================================
+    # SHIPPED
+    # =====================================================
+    cursor.execute(f"""
+        SELECT COUNT(DISTINCT o.order_id) AS shipped_orders
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE p.admin_id = ?
+        {date_filter}
+        AND o.order_status = 'Shipped'
+    """, params)
+
+    shipped = cursor.fetchone()
+
+    # =====================================================
+    # DELIVERED
+    # =====================================================
+    cursor.execute(f"""
+        SELECT COUNT(DISTINCT o.order_id) AS delivered_orders
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE p.admin_id = ?
+        {date_filter}
+        AND o.order_status = 'Delivered'
+    """, params)
+
+    delivered = cursor.fetchone()
+
+    # =====================================================
+    # CANCELLED
+    # =====================================================
+    cursor.execute(f"""
         SELECT COUNT(DISTINCT o.order_id) AS cancelled_orders
         FROM orders o
         JOIN order_items oi ON o.order_id = oi.order_id
         JOIN products p ON oi.product_id = p.product_id
         WHERE p.admin_id = ?
+        {date_filter}
         AND o.order_status = 'Cancelled'
-    """, (admin_id,))
+    """, params)
+
     cancelled = cursor.fetchone()
 
     cursor.close()
     conn.close()
 
+    # =====================================================
+    # DAILY SALES FORMAT
+    # =====================================================
     daily_sales = []
+
     for row in sales:
         daily_sales.append({
             "date": str(row["sale_date"]),
@@ -2970,16 +3044,21 @@ def admin_sales_report():
 
     return render_template(
         "admin/sales_report.html",
+
         total_revenue=float(summary["total_revenue"] or 0),
         total_orders=summary["total_orders"] or 0,
-        today_sales=float(today["today_sales"] or 0),
-        completed_orders=completed["completed_orders"] or 0,
+
         pending_orders=pending["pending_orders"] or 0,
+        confirmed_orders=confirmed["confirmed_orders"] or 0,
+        packed_orders=packed["packed_orders"] or 0,
+        shipped_orders=shipped["shipped_orders"] or 0,
+        completed_orders=delivered["delivered_orders"] or 0,
         cancelled_orders=cancelled["cancelled_orders"] or 0,
+
         daily_sales=daily_sales,
         daily_labels=daily_labels,
         daily_revenue=daily_revenue
-    )
+)
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter

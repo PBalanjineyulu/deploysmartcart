@@ -124,12 +124,7 @@
         font-size: 1.2rem;
     }
 
-    .chart-box {
-        position: relative;
-        width: 100%;
-        min-height: 320px;
-    }
-
+    .chart-box,
     .pie-box {
         position: relative;
         width: 100%;
@@ -220,7 +215,6 @@
     }
 
     @media (max-width: 991px) {
-
         .chart-box,
         .pie-box {
             min-height: 280px;
@@ -283,30 +277,28 @@
 <div class="container report-wrapper">
 
     <div class="report-header">
-    <div class="row align-items-center gy-3">
+        <div class="row align-items-center gy-3">
 
-        <!-- LEFT (BACK BUTTON) -->
-        <div class="col-12 col-lg-4">
-            <a href="/admin-dashboard" class="btn btn-light">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
+            <div class="col-12 col-lg-4">
+                <a href="/admin-dashboard" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+
+            <div class="col-12 col-lg-4 text-center">
+                <h2><i class="bi bi-graph-up-arrow"></i> Sales Report</h2>
+                <p>Analyze daily sales, revenue, orders, and payment performance.</p>
+            </div>
+
+            <div class="col-12 col-lg-4 text-lg-end">
+                <a href="/admin/download-sales-excel" class="btn btn-success fw-bold px-4 shadow">
+                    <i class="bi bi-file-earmark-excel"></i> Excel
+                </a>
+            </div>
+
         </div>
-
-        <!-- CENTER (TITLE) -->
-        <div class="col-12 col-lg-4 text-center">
-            <h2><i class="bi bi-graph-up-arrow"></i> Sales Report</h2>
-            <p>Analyze daily sales, revenue, orders, and payment performance.</p>
-        </div>
-
-        <!-- RIGHT (EXCEL BUTTON) -->
-        <div class="col-12 col-lg-4 text-lg-end">
-            <a href="/admin/download-sales-excel" class="btn btn-success fw-bold px-4 shadow">
-                <i class="bi bi-file-earmark-excel"></i> Excel
-            </a>
-        </div>
-
     </div>
-</div>
+
     <div class="filter-box">
         <form method="GET" action="/admin/sales-report">
             <div class="row g-3 align-items-end">
@@ -352,7 +344,7 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="sales-card">
                 <div class="icon-box icon-green"><i class="bi bi-check-circle"></i></div>
-                <h6>Completed Orders</h6>
+                <h6>Delivered Orders</h6>
                 <h3>{{ completed_orders }}</h3>
             </div>
         </div>
@@ -404,9 +396,9 @@
                     <span>Average Order Value</span>
                     <strong>
                         {% if total_orders %}
-                        ₹{{ total_revenue // total_orders }}
+                            ₹{{ total_revenue // total_orders }}
                         {% else %}
-                        ₹0
+                            ₹0
                         {% endif %}
                     </strong>
                 </div>
@@ -417,24 +409,24 @@
                 </div>
 
                 <div class="summary-row">
-                    <span>Success Rate</span>
+                    <span>Delivery Rate</span>
                     <strong>
                         {% if total_orders %}
-                        {{ (completed_orders * 100) // total_orders }}%
+                            {{ (completed_orders * 100) // total_orders }}%
                         {% else %}
-                        0%
+                            0%
                         {% endif %}
                     </strong>
                 </div>
 
                 <div class="mt-3">
                     <div class="d-flex justify-content-between mb-2">
-                        <strong>Order Completion</strong>
+                        <strong>Order Delivery</strong>
                         <span>
                             {% if total_orders %}
-                            {{ (completed_orders * 100) // total_orders }}%
+                                {{ (completed_orders * 100) // total_orders }}%
                             {% else %}
-                            0%
+                                0%
                             {% endif %}
                         </span>
                     </div>
@@ -527,23 +519,37 @@
     new Chart(document.getElementById('orderPieChart'), {
         type: 'doughnut',
         data: {
-            labels: ['Completed', 'Pending', 'Cancelled'],
+            labels: ['Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered', 'Cancelled'],
             datasets: [{
-                data: [{{ completed_orders }}, {{ pending_orders }}, {{ cancelled_orders }}],
-        backgroundColor: ['#16a34a', '#f59e0b', '#dc2626'],
-        borderWidth: 0
+                data: [
+                    {{ pending_orders }},
+                    {{ confirmed_orders }},
+                    {{ packed_orders }},
+                    {{ shipped_orders }},
+                    {{ completed_orders }},
+                    {{ cancelled_orders }}
+                ],
+                backgroundColor: [
+                    '#f59e0b',
+                    '#2563eb',
+                    '#8b5cf6',
+                    '#0ea5e9',
+                    '#16a34a',
+                    '#dc2626'
+                ],
+                borderWidth: 0
             }]
         },
         options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '62%',
-        plugins: {
-            legend: {
-                position: 'bottom'
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '62%',
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
             }
         }
-    }
     });
 </script>
 
