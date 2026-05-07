@@ -13,7 +13,6 @@ import razorpay
 import traceback
 from utils.pdf_generator import generate_pdf
 from datetime import datetime
-from datetime import datetime
 from pytz import timezone
 
 
