@@ -5,70 +5,17 @@
 {% block content %}
 
 <style>
+
     .view-page {
-        padding: 30px 0;
+        padding: 120px 0 40px;
     }
 
     .product-card {
         background: #fff;
-        border-radius: 22px;
-        padding: 28px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-    }
-
-    .product-image {
-        width: 100%;
-        max-width: 350px;
-        height: 350px;
-        object-fit: cover;
-        border-radius: 18px;
+        border-radius: 24px;
+        padding: 35px;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.12);
         border: 1px solid #e5e7eb;
-        background: #f8fafc;
-    }
-
-    .product-title {
-        font-size: 32px;
-        font-weight: 800;
-        color: #0f172a;
-        margin-bottom: 15px;
-    }
-
-    .info-label {
-        font-weight: 700;
-        color: #475569;
-        margin-bottom: 5px;
-    }
-
-    .info-value {
-        font-size: 17px;
-        color: #0f172a;
-        margin-bottom: 18px;
-    }
-
-    .price-box {
-        font-size: 28px;
-        font-weight: 800;
-        color: #16a34a;
-        margin-bottom: 20px;
-    }
-
-    .category-badge {
-        display: inline-block;
-        background: #e0f2fe;
-        color: #0369a1;
-        padding: 8px 16px;
-        border-radius: 999px;
-        font-weight: 600;
-        margin-bottom: 20px;
-    }
-
-    .admin-badge {
-        display: inline-block;
-        background: #ede9fe;
-        color: #5b21b6;
-        padding: 8px 16px;
-        border-radius: 999px;
-        font-weight: 600;
     }
 
     .btn-back {
@@ -77,35 +24,137 @@
         font-weight: 700;
     }
 
-    @media (max-width: 768px) {
+    .product-image {
+        width: 100%;
+        max-width: 380px;
+        height: 380px;
+        object-fit: cover;
+        border-radius: 20px;
+        border: 1px solid #e5e7eb;
+        background: #f8fafc;
+    }
+
+    .product-title {
+        font-size: 38px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 15px;
+        word-break: break-word;
+    }
+
+    .category-badge {
+        display: inline-block;
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 8px 18px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .price-box {
+        font-size: 34px;
+        font-weight: 800;
+        color: #16a34a;
+        margin-bottom: 25px;
+    }
+
+    .info-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 16px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .info-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .info-value {
+        font-size: 18px;
+        color: #0f172a;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .admin-badge {
+        display: inline-block;
+        background: #ede9fe;
+        color: #5b21b6;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    @media (max-width: 992px) {
+
+        .view-page {
+            padding: 110px 0 30px;
+        }
 
         .product-card {
-            padding: 20px;
+            padding: 24px;
         }
 
         .product-title {
-            font-size: 24px;
+            font-size: 28px;
             margin-top: 20px;
         }
 
         .product-image {
-            height: 280px;
+            height: 300px;
         }
     }
+
+    @media (max-width: 576px) {
+
+        .product-card {
+            padding: 18px;
+            border-radius: 18px;
+        }
+
+        .product-title {
+            font-size: 24px;
+        }
+
+        .product-image {
+            height: 260px;
+        }
+
+        .price-box {
+            font-size: 28px;
+        }
+
+        .info-value {
+            font-size: 16px;
+        }
+    }
+
 </style>
 
 <div class="container view-page">
 
+    <!-- Back Button -->
     <div class="mb-4">
         <a href="/superadmin/products" class="btn btn-dark btn-back">
             ← Back
         </a>
     </div>
 
+    <!-- Product Card -->
     <div class="product-card">
 
-        <div class="row align-items-center g-4">
+        <div class="row align-items-center g-5">
 
+            <!-- Product Image -->
             <div class="col-lg-5 text-center">
 
                 {% if product.image %}
@@ -113,11 +162,14 @@
                      alt="{{ product.name }}"
                      class="product-image">
                 {% else %}
-                <div class="text-muted">No Image Available</div>
+                <div class="text-muted">
+                    No Image Available
+                </div>
                 {% endif %}
 
             </div>
 
+            <!-- Product Details -->
             <div class="col-lg-7">
 
                 <h1 class="product-title">
@@ -132,46 +184,64 @@
                     ₹{{ product.price }}
                 </div>
 
-                <div class="info-label">
-                    Description
+                <div class="info-card">
+                    <div class="info-label">
+                        Description
+                    </div>
+
+                    <div class="info-value">
+                        {{ product.description }}
+                    </div>
                 </div>
 
-                <div class="info-value">
-                    {{ product.description }}
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <div class="info-card">
+                            <div class="info-label">
+                                Product ID
+                            </div>
+
+                            <div class="info-value">
+                                #{{ product.product_id }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="info-card">
+                            <div class="info-label">
+                                Stock
+                            </div>
+
+                            <div class="info-value">
+                                {{ product.stock if product.stock else 0 }}
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="info-label">
-                    Product ID
+                <div class="info-card">
+                    <div class="info-label">
+                        Admin
+                    </div>
+
+                    <div class="info-value">
+                        <span class="admin-badge">
+                            {{ product.admin_name }}
+                        </span>
+                    </div>
                 </div>
 
-                <div class="info-value">
-                    #{{ product.product_id }}
-                </div>
+                <div class="info-card">
+                    <div class="info-label">
+                        Admin Email
+                    </div>
 
-                <div class="info-label">
-                    Stock
-                </div>
-
-                <div class="info-value">
-                    {{ product.stock if product.stock else 0 }}
-                </div>
-
-                <div class="info-label">
-                    Admin
-                </div>
-
-                <div class="info-value">
-                    <span class="admin-badge">
-                        {{ product.admin_name }}
-                    </span>
-                </div>
-
-                <div class="info-label mt-3">
-                    Admin Email
-                </div>
-
-                <div class="info-value">
-                    {{ product.admin_email }}
+                    <div class="info-value">
+                        {{ product.admin_email }}
+                    </div>
                 </div>
 
             </div>

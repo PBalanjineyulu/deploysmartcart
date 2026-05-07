@@ -29,11 +29,17 @@
         overflow: hidden;
     }
 
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+
     .custom-table {
         width: 100%;
+        min-width: 900px;
         margin-bottom: 0;
         vertical-align: middle;
-        table-layout: auto;
+        table-layout: fixed;
     }
 
     .custom-table thead th {
@@ -44,33 +50,72 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         white-space: nowrap;
+        border: none;
     }
 
     .custom-table tbody td {
         padding: 14px;
         font-size: 15px;
         vertical-align: middle;
+        border-bottom: 1px solid #e5e7eb;
     }
 
     .custom-table tbody tr:hover {
         background: #f1f5f9;
     }
 
+    .custom-table th:nth-child(1),
+    .custom-table td:nth-child(1) {
+        width: 10%;
+    }
+
+    .custom-table th:nth-child(2),
+    .custom-table td:nth-child(2) {
+        width: 12%;
+    }
+
+    .custom-table th:nth-child(3),
+    .custom-table td:nth-child(3) {
+        width: 36%;
+    }
+
+    .custom-table th:nth-child(4),
+    .custom-table td:nth-child(4) {
+        width: 13%;
+    }
+
+    .custom-table th:nth-child(5),
+    .custom-table td:nth-child(5) {
+        width: 12%;
+    }
+
+    .custom-table th:nth-child(6),
+    .custom-table td:nth-child(6) {
+        width: 10%;
+    }
+
+    .custom-table th:nth-child(7),
+    .custom-table td:nth-child(7) {
+        width: 7%;
+    }
+
     .product-img {
-        width: 72px;
-        height: 72px;
-        object-fit: cover;
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
         border-radius: 14px;
         border: 1px solid #e5e7eb;
-        background: #f8fafc;
+        background: #ffffff;
+        padding: 4px;
     }
 
     .product-name {
         font-weight: 700;
         color: #0f172a;
-        max-width: 420px;
         white-space: normal;
         word-break: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.5;
     }
 
     .category-badge {
@@ -81,6 +126,7 @@
         font-size: 13px;
         font-weight: 600;
         display: inline-block;
+        word-break: break-word;
     }
 
     .price-text {
@@ -107,7 +153,14 @@
         white-space: nowrap;
     }
 
+    .no-products {
+        padding: 35px !important;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
     @media (max-width: 768px) {
+
         .products-page {
             padding: 18px 0;
         }
@@ -127,6 +180,10 @@
             border-radius: 14px;
         }
 
+        .custom-table {
+            min-width: 850px;
+        }
+
         .custom-table thead th,
         .custom-table tbody td {
             padding: 12px;
@@ -134,8 +191,8 @@
         }
 
         .product-img {
-            width: 58px;
-            height: 58px;
+            width: 70px;
+            height: 70px;
         }
     }
 </style>
@@ -145,19 +202,24 @@
 
         <div class="page-header">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
                 <div>
                     <h2>📦 All Products</h2>
-                    <p class="mb-0 mt-2">Monitor all products added by admins across the platform.</p>
+                    <p class="mb-0 mt-2">
+                        Monitor all products added by admins across the platform.
+                    </p>
                 </div>
 
                 <a href="/superadmin/dashboard" class="btn btn-light fw-bold">
                     ← Back
                 </a>
+
             </div>
         </div>
 
         <div class="table-card">
             <div class="table-responsive">
+
                 <table class="table table-hover align-middle text-center custom-table">
                     <thead>
                         <tr>
@@ -174,7 +236,9 @@
                     <tbody>
                         {% for product in products %}
                         <tr>
-                            <td>#{{ product.product_id }}</td>
+                            <td>
+                                #{{ product.product_id }}
+                            </td>
 
                             <td>
                                 {% if product.image %}
@@ -182,11 +246,15 @@
                                      class="product-img"
                                      alt="{{ product.name }}">
                                 {% else %}
-                                <span class="text-muted">No Image</span>
+                                <span class="text-muted">
+                                    No Image
+                                </span>
                                 {% endif %}
                             </td>
 
-                            <td class="product-name">{{ product.name }}</td>
+                            <td class="product-name">
+                                {{ product.name }}
+                            </td>
 
                             <td>
                                 <span class="category-badge">
@@ -194,7 +262,9 @@
                                 </span>
                             </td>
 
-                            <td class="price-text">₹{{ product.price }}</td>
+                            <td class="price-text">
+                                ₹{{ product.price }}
+                            </td>
 
                             <td>
                                 <span class="admin-badge">
@@ -211,13 +281,14 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="7" class="text-muted">
+                            <td colspan="7" class="text-muted no-products">
                                 No products found.
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+
             </div>
         </div>
 
