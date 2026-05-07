@@ -1056,13 +1056,13 @@ SmartCart Team
 """
 
     try:
-        mail.send(message)
+        safe_send_mail(message)
         flash("OTP sent successfully to your email!", "success")
         return redirect('/user-verify-otp')
 
     except Exception as e:
         print("MAIL ERROR:", e)
-        flash("Failed to send OTP email. PythonAnywhere may be blocking SMTP.", "danger")
+        flash("Failed to send OTP email!", "danger")
         return redirect('/user-register')
 
 
