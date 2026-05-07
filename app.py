@@ -749,7 +749,7 @@ Message:
 {message_text}
 """
 
-            mail.send(msg)
+            safe_send_mail(msg)
 
             flash("Message sent successfully!", "success")
 
@@ -799,7 +799,7 @@ def forgot_password():
 
         msg.body = f"Your OTP is: {otp}"
 
-        mail.send(msg)
+        safe_send_mail(msg)
 
         flash("OTP sent successfully to your email!", "success")
         return redirect('/verify-reset-otp')
@@ -1492,7 +1492,7 @@ Message:
 {message_text}
 """
 
-            mail.send(msg)
+            safe_send_mail(msg)
 
             flash("Message sent successfully!", "success")
 
@@ -2776,7 +2776,7 @@ Your OTP is: {otp}
 Do not share this OTP with anyone.
 """
 
-        mail.send(msg)
+        safe_send_mail(msg)
 
         flash("OTP sent successfully to your email!", "success")
 
