@@ -44,14 +44,17 @@ mail = Mail(app)
 EMAIL_ENABLED = True
 
 def safe_send_mail(message, otp=None, label="MAIL"):
-    if EMAIL_ENABLED:
+
+    try:
         mail.send(message)
-    else:
-        print("===================================")
-        print(f"{label} DISABLED")
-        if otp:
-            print("OTP:", otp)
-        print("===================================")
+        print(f"{label} SENT SUCCESSFULLY")
+
+    except Exception as e:
+
+        print(f"{label} FAILED")
+        print("ERROR:", str(e))
+
+        raise e
 
 
 app.config['PRODUCT_UPLOAD_FOLDER'] = 'static/uploads/product_images'
@@ -59,7 +62,6 @@ app.config['PROFILE_UPLOAD_FOLDER'] = 'static/uploads/profile_images'
 
 os.makedirs(app.config['PRODUCT_UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['PROFILE_UPLOAD_FOLDER'], exist_ok=True)
-
 
 # ---------------- SQLITE DB CONNECTION FUNCTION --------------
 def get_db_connection():
