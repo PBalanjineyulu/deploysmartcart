@@ -12,6 +12,7 @@ from werkzeug.utils import secure_filename
 import razorpay
 import traceback
 from utils.pdf_generator import generate_pdf
+from datetime import datetime
 
 
 razorpay_client = razorpay.Client(
@@ -2888,6 +2889,11 @@ def admin_sales_report():
 
     from_date = request.args.get('from_date')
     to_date = request.args.get('to_date')
+    # Default today filter
+    if not from_date or not to_date:
+        today = datetime.now().strftime('%Y-%m-%d')
+        from_date = today
+        to_date = today
 
     date_filter = ""
     params = [admin_id]
