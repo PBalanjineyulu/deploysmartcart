@@ -275,9 +275,9 @@ def admin_logout():
     return redirect('/admin-login')
 
 
-# ------------------- IMAGE UPLOAD PATH -------------------
-UPLOAD_FOLDER = 'static/uploads/product_images'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# # ------------------- IMAGE UPLOAD PATH -------------------
+# UPLOAD_FOLDER = 'static/uploads/product_images'
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 # =================================================================
@@ -416,7 +416,10 @@ def view_item(item_id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM products WHERE product_id = ?", (item_id,))
+    cursor.execute(
+    "SELECT * FROM products WHERE product_id = ? AND admin_id = ?",
+    (item_id, session['admin_id'])
+)
     product = cursor.fetchone()
 
     cursor.close()
@@ -443,7 +446,10 @@ def update_item_page(item_id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM products WHERE product_id = ?", (item_id,))
+    cursor.execute(
+    "SELECT * FROM products WHERE product_id = ? AND admin_id = ?",
+    (item_id, session['admin_id'])
+)
     product = cursor.fetchone()
 
     cursor.close()
@@ -476,7 +482,12 @@ def update_item(item_id):
     # 2️⃣ Fetch old product data
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM products WHERE product_id = ?", (item_id,))
+
+    cursor.execute(
+        "SELECT * FROM products WHERE product_id = ? AND admin_id = ?",
+        (item_id, session['admin_id'])
+    )
+
     product = cursor.fetchone()
 
     if not product:
@@ -487,40 +498,63 @@ def update_item(item_id):
 
     # 3️⃣ If admin uploaded a new image → replace it
     if new_image and new_image.filename != "":
-        
-        # Secure filename
+
         from werkzeug.utils import secure_filename
+
+        # Secure filename
         new_filename = secure_filename(new_image.filename)
 
         # Save new image
-        new_image_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+        new_image_path = os.path.join(
+            app.config['PRODUCT_UPLOAD_FOLDER'],
+            new_filename
+        )
+
         new_image.save(new_image_path)
 
-        # Delete old image file
-        old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], old_image_name)
+        # Delete old image
+        old_image_path = os.path.join(
+            app.config['PRODUCT_UPLOAD_FOLDER'],
+            old_image_name
+        )
+
         if os.path.exists(old_image_path):
             os.remove(old_image_path)
 
         final_image_name = new_filename
 
     else:
-        # No new image uploaded → keep old one
+        # Keep old image
         final_image_name = old_image_name
 
-    # 4️⃣ Update product in the database
+    # 4️⃣ Update product in database
     cursor.execute("""
         UPDATE products
-        SET name=?, description=?, category=?, price=?, image=?
-        WHERE product_id=?
-    """, (name, description, category, price, final_image_name, item_id))
+        SET 
+            name=?,
+            description=?,
+            category=?,
+            price=?,
+            image=?
+        WHERE product_id=? AND admin_id=?
+    """, (
+        name,
+        description,
+        category,
+        price,
+        final_image_name,
+        item_id,
+        session['admin_id']
+    ))
 
     conn.commit()
+
     cursor.close()
     conn.close()
 
     flash("Product updated successfully!", "success")
-    return redirect('/admin/item-list')
 
+    return redirect('/admin/item-list')
 
 # =================================================================
 #  route-13 DELETE PRODUCT (DELETE DB ROW + DELETE IMAGE FILE)
@@ -1112,11 +1146,11 @@ def user_login():
 # =================================================================
 # ROUTE 03: USER DASHBOARD
 # =================================================================
-@app.context_processor
-def inject_cart_count():
-    cart = session.get('cart', {})
-    cart_count = sum(item['quantity'] for item in cart.values())
-    return dict(cart_count=cart_count)
+# @app.context_processor
+# def inject_cart_count():
+#     cart = session.get('cart', {})
+#     cart_count = sum(item['quantity'] for item in cart.values())
+#     return dict(cart_count=cart_count)
 
 
 @app.route('/user-dashboard')
@@ -1318,8 +1352,8 @@ def user_reset_password():
     flash("Password updated successfully!", "success")
     return redirect('/user-login')
 
-UPLOAD_FOLDER = 'static/uploads/user_profiles'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# UPLOAD_FOLDER = 'static/uploads/user_profiles'
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # =================================================================
 # ROUTE : SHOW USER PROFILE
@@ -1811,7 +1845,7 @@ def pay_selected_products():
 
     for pid in selected_products:
         cursor.execute("""
-            SELECT c.quantity, p.product_id, p.name, p.price, p.image
+            SELECT c.quantity, p.product_id, p.name, p.price, p.image, p.admin_id
             FROM cart c
             JOIN products p ON c.product_id = p.product_id
             WHERE c.user_id = ? AND c.product_id = ?
@@ -2564,18 +2598,39 @@ def superadmin_revenue():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT COALESCE(SUM(amount), 0) AS total_revenue FROM orders")
+    # =========================
+    # TOTAL REVENUE
+    # =========================
+    cursor.execute("""
+        SELECT 
+            COALESCE(SUM(amount), 0) AS total_revenue
+        FROM orders
+    """)
+
     total_revenue = cursor.fetchone()['total_revenue']
 
+    # =========================
+    # ADMIN WISE REVENUE
+    # =========================
     cursor.execute("""
         SELECT 
             admin.name AS admin_name,
-            IFNULL(SUM(orders.amount), 0) AS revenue
+
+            COALESCE(SUM(order_items.total), 0) AS revenue
+
         FROM admin
-        LEFT JOIN products ON admin.admin_id = products.admin_id
-        LEFT JOIN orders ON products.product_id = orders.order_id
-        GROUP BY admin.admin_id
+
+        LEFT JOIN products
+            ON admin.admin_id = products.admin_id
+
+        LEFT JOIN order_items
+            ON products.product_id = order_items.product_id
+
+        GROUP BY admin.admin_id, admin.name
+
+        ORDER BY revenue DESC
     """)
+
     admin_revenue = cursor.fetchall()
 
     cursor.close()
@@ -2586,7 +2641,6 @@ def superadmin_revenue():
         total_revenue=total_revenue,
         admin_revenue=admin_revenue
     )
-
 #=========================================================
 #      SUPER ADMIN FORGOT PASSWORD
 #=====================================================
