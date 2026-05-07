@@ -13,6 +13,8 @@ import razorpay
 import traceback
 from utils.pdf_generator import generate_pdf
 from datetime import datetime
+from datetime import datetime
+from pytz import timezone
 
 
 razorpay_client = razorpay.Client(
@@ -2003,6 +2005,11 @@ def verify_payment():
     cursor = conn.cursor()
 
     try:
+
+        # INDIA TIME
+        india = timezone('Asia/Kolkata')
+        created_at = datetime.now(india).strftime("%Y-%m-%d %H:%M:%S")
+
         # Get address
         cursor.execute("""
             SELECT * FROM addresses
@@ -2027,7 +2034,7 @@ def verify_payment():
                     'quantity': int(item['quantity']),
                     'name': item['name'],
                     'price': float(item['price']),
-                    'admin_id': item.get('admin_id', 1)  # ✅ FIX
+                    'admin_id': item.get('admin_id', 1)
                 })
         else:
             cursor.execute("""
@@ -2038,7 +2045,8 @@ def verify_payment():
                     products.price,
                     products.admin_id
                 FROM cart
-                JOIN products ON cart.product_id = products.product_id
+                JOIN products 
+                    ON cart.product_id = products.product_id
                 WHERE cart.user_id = ?
             """, (user_id,))
 
@@ -2054,7 +2062,7 @@ def verify_payment():
             for item in cart_items
         )
 
-        # Take first product admin (for orders table)
+        # First product admin
         admin_id = cart_items[0].get('admin_id')
 
         # Insert order
@@ -2074,9 +2082,10 @@ def verify_payment():
                 state,
                 pincode,
                 country,
-                admin_id
+                admin_id,
+                created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             user_id,
             razorpay_order_id,
@@ -2092,13 +2101,15 @@ def verify_payment():
             address['state'],
             address['pincode'],
             address['country'],
-            admin_id
+            admin_id,
+            created_at
         ))
 
         order_db_id = cursor.lastrowid
 
-        # Insert order items (🔥 FIXED HERE)
+        # Insert order items
         for item in cart_items:
+
             quantity = int(item['quantity'])
             price = float(item['price'])
             total = quantity * price
@@ -2121,17 +2132,24 @@ def verify_payment():
                 quantity,
                 price,
                 total,
-                item['admin_id']   # ✅ IMPORTANT FIX
+                item['admin_id']
             ))
 
         # Clear cart
         if selected_products_dict:
+
             for item in selected_products_dict.values():
+
                 cursor.execute("""
                     DELETE FROM cart
                     WHERE user_id = ? AND product_id = ?
-                """, (user_id, item['product_id']))
+                """, (
+                    user_id,
+                    item['product_id']
+                ))
+
         else:
+
             cursor.execute("""
                 DELETE FROM cart
                 WHERE user_id = ?
@@ -2147,15 +2165,21 @@ def verify_payment():
         conn.commit()
 
         flash("Payment successful! Order placed.", "success")
+
         return redirect(f'/user/order-success/{order_db_id}')
 
     except Exception as e:
+
         conn.rollback()
+
         print("ERROR:", str(e))
+
         flash("Order failed after payment!", "danger")
+
         return redirect('/user/cart')
 
     finally:
+
         cursor.close()
         conn.close()
 #------------------------------------------------------------
