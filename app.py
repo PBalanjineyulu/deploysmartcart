@@ -3409,6 +3409,7 @@ def superadmin_sales_report():
 
     # =========================
     # ADMIN WISE REVENUE
+    # Cancelled orders excluded from revenue
     # =========================
     cursor.execute("""
         SELECT 
@@ -3420,6 +3421,7 @@ def superadmin_sales_report():
         LEFT JOIN orders o 
             ON a.admin_id = o.admin_id
             AND DATE(o.created_at) BETWEEN ? AND ?
+            AND o.order_status != 'Cancelled'
         GROUP BY a.admin_id, a.name
         ORDER BY total_sales DESC
     """, (from_date, to_date))
@@ -3428,6 +3430,7 @@ def superadmin_sales_report():
 
     # =========================
     # DAILY SALES
+    # Cancelled orders excluded
     # =========================
     cursor.execute("""
         SELECT 
@@ -3436,6 +3439,7 @@ def superadmin_sales_report():
             IFNULL(SUM(amount), 0) AS total_revenue
         FROM orders
         WHERE DATE(created_at) BETWEEN ? AND ?
+        AND order_status != 'Cancelled'
         GROUP BY DATE(created_at)
         ORDER BY sale_date
     """, (from_date, to_date))
@@ -3444,6 +3448,7 @@ def superadmin_sales_report():
 
     # =========================
     # ORDER STATUS COUNTS
+    # Keep Cancelled count separate
     # =========================
     def count_status(status):
         cursor.execute("""
@@ -3465,6 +3470,7 @@ def superadmin_sales_report():
 
     # =========================
     # SUMMARY
+    # Cancelled orders excluded from total revenue/orders
     # =========================
     cursor.execute("""
         SELECT 
@@ -3472,6 +3478,7 @@ def superadmin_sales_report():
             COUNT(order_id) AS total_orders
         FROM orders
         WHERE DATE(created_at) BETWEEN ? AND ?
+        AND order_status != 'Cancelled'
     """, (from_date, to_date))
 
     summary = cursor.fetchone()
