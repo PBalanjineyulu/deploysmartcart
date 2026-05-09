@@ -62,7 +62,9 @@ app.config['PROFILE_UPLOAD_FOLDER'] = 'static/uploads/profile_images'
 
 os.makedirs(app.config['PRODUCT_UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['PROFILE_UPLOAD_FOLDER'], exist_ok=True)
+app.config['ADMIN_UPLOAD_FOLDER'] = 'static/uploads/admin_profiles'
 
+os.makedirs(app.config['ADMIN_UPLOAD_FOLDER'], exist_ok=True)
 # ---------------- SQLITE DB CONNECTION FUNCTION --------------
 def get_db_connection():
     # For PythonAnywhere, keep smartcart.db in same folder as app.py
