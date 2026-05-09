@@ -2445,10 +2445,18 @@ def superadmin_dashboard():
     cursor.execute("SELECT COUNT(*) AS total_products FROM products")
     total_products = cursor.fetchone()['total_products']
 
-    cursor.execute("SELECT COUNT(*) AS total_orders FROM orders")
+    cursor.execute("""
+        SELECT COUNT(*) AS total_orders
+        FROM orders
+        WHERE order_status != 'Cancelled'
+    """)
     total_orders = cursor.fetchone()['total_orders']
 
-    cursor.execute("SELECT COALESCE(SUM(amount), 0) AS total_revenue FROM orders")
+    cursor.execute("""
+        SELECT COALESCE(SUM(amount), 0) AS total_revenue
+        FROM orders
+        WHERE order_status != 'Cancelled'
+    """)
     total_revenue = cursor.fetchone()['total_revenue']
 
     cursor.close()
@@ -2461,7 +2469,6 @@ def superadmin_dashboard():
         total_orders=total_orders,
         total_revenue=total_revenue
     )
-
 
 # ============================================================
 # VIEW ALL ADMINS
@@ -2678,17 +2685,20 @@ def superadmin_revenue():
 
     # =========================
     # TOTAL REVENUE
+    # Cancelled orders excluded
     # =========================
     cursor.execute("""
         SELECT 
             COALESCE(SUM(amount), 0) AS total_revenue
         FROM orders
+        WHERE order_status != 'Cancelled'
     """)
 
     total_revenue = cursor.fetchone()['total_revenue']
 
     # =========================
     # ADMIN WISE REVENUE
+    # Cancelled orders excluded
     # =========================
     cursor.execute("""
         SELECT 
@@ -2703,6 +2713,14 @@ def superadmin_revenue():
 
         LEFT JOIN order_items
             ON products.product_id = order_items.product_id
+
+        LEFT JOIN orders
+            ON order_items.order_id = orders.order_id
+
+        WHERE (
+            orders.order_status != 'Cancelled'
+            OR orders.order_id IS NULL
+        )
 
         GROUP BY admin.admin_id, admin.name
 
