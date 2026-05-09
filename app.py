@@ -125,7 +125,7 @@ def admin_signup():
     message.body = f"Your OTP for SmartCart Admin Registration is: {otp}"
     safe_send_mail(message, otp, "ADMIN SIGNUP OTP")
 
-    flash("OTP generated successfully! Check server log.", "success")
+    flash("OTP sent successfully to your email!", "success")
     return redirect('/verify-otp')
 
 
@@ -304,36 +304,29 @@ def add_item_page():
 @app.route('/admin/add-item', methods=['POST'])
 def add_item():
 
-    # Check admin session
     if 'admin_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/admin-login')
 
-    # 🔥 GET ADMIN ID FROM SESSION
     admin_id = session['admin_id']
 
-    # 1️⃣ Get form data
     name = request.form['name']
     description = request.form['description']
     category = request.form['category']
     price = request.form['price']
-    image_file = request.files['image']
+    image_file = request.files.get('image')
 
-    # 2️⃣ Validate image upload
-    if image_file.filename == "":
+    # Safe image validation
+    if not image_file or image_file.filename == "":
         flash("Please upload a product image!", "danger")
         return redirect('/admin/add-item')
 
-    # 3️⃣ Secure the file name
     filename = secure_filename(image_file.filename)
 
-    # 4️⃣ Create full path
     image_path = os.path.join(app.config['PRODUCT_UPLOAD_FOLDER'], filename)
 
-    # 5️⃣ Save image into folder
     image_file.save(image_path)
 
-    # 6️⃣ Insert product into database (🔥 UPDATED)
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -446,25 +439,38 @@ def update_item_page(item_id):
         flash("Please login!", "danger")
         return redirect('/admin-login')
 
-    # Fetch product data
+    # Database connection
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # Fetch product only for logged-in admin
     cursor.execute(
-    "SELECT * FROM products WHERE product_id = ? AND admin_id = ?",
-    (item_id, session['admin_id'])
-)
+        """
+        SELECT * FROM products
+        WHERE product_id = ? AND admin_id = ?
+        """,
+        (item_id, session['admin_id'])
+    )
+
     product = cursor.fetchone()
 
-    cursor.close()
-    conn.close()
-
+    # Product not found
     if not product:
+        cursor.close()
+        conn.close()
+
         flash("Product not found!", "danger")
         return redirect('/admin/item-list')
 
-    return render_template("admin/update_item.html", product=product)
+    # Close DB
+    cursor.close()
+    conn.close()
 
+    # Render update page
+    return render_template(
+        "admin/update_item.html",
+        product=product
+    )
 # =================================================================
 # ROUTE-12: UPDATE PRODUCT + OPTIONAL IMAGE REPLACE
 # =================================================================
@@ -475,15 +481,13 @@ def update_item(item_id):
         flash("Please login!", "danger")
         return redirect('/admin-login')
 
-    # 1️⃣ Get updated form data
     name = request.form['name']
     description = request.form['description']
     category = request.form['category']
     price = request.form['price']
 
-    new_image = request.files['image']
+    new_image = request.files.get('image')
 
-    # 2️⃣ Fetch old product data
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -495,20 +499,17 @@ def update_item(item_id):
     product = cursor.fetchone()
 
     if not product:
+        cursor.close()
+        conn.close()
+
         flash("Product not found!", "danger")
         return redirect('/admin/item-list')
 
     old_image_name = product['image']
 
-    # 3️⃣ If admin uploaded a new image → replace it
     if new_image and new_image.filename != "":
-
-        from werkzeug.utils import secure_filename
-
-        # Secure filename
         new_filename = secure_filename(new_image.filename)
 
-        # Save new image
         new_image_path = os.path.join(
             app.config['PRODUCT_UPLOAD_FOLDER'],
             new_filename
@@ -516,22 +517,19 @@ def update_item(item_id):
 
         new_image.save(new_image_path)
 
-        # Delete old image
         old_image_path = os.path.join(
             app.config['PRODUCT_UPLOAD_FOLDER'],
             old_image_name
         )
 
-        if os.path.exists(old_image_path):
+        if old_image_name and os.path.exists(old_image_path):
             os.remove(old_image_path)
 
         final_image_name = new_filename
 
     else:
-        # Keep old image
         final_image_name = old_image_name
 
-    # 4️⃣ Update product in database
     cursor.execute("""
         UPDATE products
         SET 
@@ -552,64 +550,72 @@ def update_item(item_id):
     ))
 
     conn.commit()
-
     cursor.close()
     conn.close()
 
     flash("Product updated successfully!", "success")
-
     return redirect('/admin/item-list')
-
 # =================================================================
 #  route-13 DELETE PRODUCT (DELETE DB ROW + DELETE IMAGE FILE)
 # =================================================================
 @app.route('/admin/delete-item/<int:item_id>')
 def delete_item(item_id):
 
+    # Check admin login
     if 'admin_id' not in session:
         flash("Please login first!", "danger")
         return redirect('/admin-login')
 
-    admin_id = session['admin_id']   # 🔥 ADD THIS
+    admin_id = session['admin_id']
 
+    # Database connection
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 1️⃣ Fetch product ONLY if it belongs to this admin
+    # Fetch product only if it belongs to logged-in admin
     cursor.execute(
         "SELECT image FROM products WHERE product_id=? AND admin_id=?",
         (item_id, admin_id)
     )
+
     product = cursor.fetchone()
 
+    # Product not found
     if not product:
+        cursor.close()
+        conn.close()
+
         flash("Unauthorized or product not found!", "danger")
         return redirect('/admin/item-list')
 
     image_name = product['image']
 
-    # Delete image from folder
-    image_path = os.path.join(app.config['PRODUCT_UPLOAD_FOLDER'], image_name)
-    if os.path.exists(image_path):
-        os.remove(image_path)
+    # Delete image from uploads folder
+    if image_name:
 
-    # 2️⃣ Delete product ONLY for this admin
+        image_path = os.path.join(
+            app.config['PRODUCT_UPLOAD_FOLDER'],
+            image_name
+        )
+
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+    # Delete product from database
     cursor.execute(
         "DELETE FROM products WHERE product_id=? AND admin_id=?",
         (item_id, admin_id)
     )
+
     conn.commit()
 
+    # Close DB
     cursor.close()
     conn.close()
 
     flash("Product deleted successfully!", "success")
+
     return redirect('/admin/item-list')
-
-ADMIN_UPLOAD_FOLDER = 'static/uploads/admin_profiles'
-app.config['ADMIN_UPLOAD_FOLDER'] = ADMIN_UPLOAD_FOLDER
-os.makedirs(app.config['ADMIN_UPLOAD_FOLDER'], exist_ok=True)
-
 # =================================================================
 # ROUTE 14: SHOW ADMIN PROFILE DATA
 # =================================================================
@@ -649,7 +655,7 @@ def admin_profile_update():
     name = request.form['name']
     email = request.form['email']
     new_password = request.form['password']
-    new_image = request.files['profile_image']
+    new_image = request.files.get('profile_image')
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -1164,21 +1170,36 @@ def user_dashboard():
         flash("Please login first!", "danger")
         return redirect('/user-login')
 
-    # Example dashboard values
-    total_orders = 12
-    wishlist_count = 5
-    available_offers = 3
-    recent_views = 8
+    user_id = session['user_id']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT COUNT(*) AS total_orders
+        FROM orders
+        WHERE user_id = ?
+    """, (user_id,))
+    total_orders = cursor.fetchone()["total_orders"]
+
+    cursor.execute("""
+        SELECT COUNT(*) AS cart_count
+        FROM cart
+        WHERE user_id = ?
+    """, (user_id,))
+    cart_count = cursor.fetchone()["cart_count"]
+
+    cursor.close()
+    conn.close()
 
     return render_template(
         "user/user_home.html",
         user_name=session['user_name'],
         total_orders=total_orders,
-        wishlist_count=wishlist_count,
-        available_offers=available_offers,
-        recent_views=recent_views
+        wishlist_count=0,
+        available_offers=0,
+        recent_views=cart_count
     )
-
 # =================================================================
 # ROUTE 04: USER LOGOUT
 # =================================================================
@@ -1307,7 +1328,7 @@ def user_forgot_password():
     msg.body = f"Your OTP is: {otp}"
     safe_send_mail(msg, otp, "USER RESET OTP")
 
-    flash("OTP generated successfully! Check server log.", "success")
+    flash("OTP generated successfully  to your email! ", "success")
     return redirect('/user-verify-reset-otp')
 
 # VERIFY OTP ROUTE
@@ -1395,7 +1416,7 @@ def user_profile_update():
 
     user_id = session['user_id']
 
-    # 1️⃣ Get form data
+    # Get form data
     name = request.form['name']
     email = request.form['email']
     new_password = request.form['password']
@@ -1403,58 +1424,89 @@ def user_profile_update():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 2️⃣ Fetch old user data
-    cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+    # Fetch old user data
+    cursor.execute(
+        "SELECT * FROM users WHERE user_id = ?",
+        (user_id,)
+    )
+
     user = cursor.fetchone()
 
-    # ================= IMAGE UPLOAD =================
-    profile_image = user['profile_image']  # default old image
+    # Default old image
+    profile_image = user['profile_image']
 
-    if 'profile_image' in request.files:
-        file = request.files['profile_image']
+    # Safe image upload
+    file = request.files.get('profile_image')
 
-        if file and file.filename != "":
-            filename = secure_filename(file.filename)
+    if file and file.filename != "":
 
-            # make unique filename
-            filename = f"{user_id}_{filename}"
+        filename = secure_filename(file.filename)
 
-            # ✅ FIX: create folder if not exists
-            upload_folder = app.config['PROFILE_UPLOAD_FOLDER']
-            os.makedirs(upload_folder, exist_ok=True)
+        # Unique filename
+        filename = f"{user_id}_{filename}"
 
-            filepath = os.path.join(upload_folder, filename)
-            file.save(filepath)
+        # Create folder if not exists
+        upload_folder = app.config['PROFILE_UPLOAD_FOLDER']
+        os.makedirs(upload_folder, exist_ok=True)
 
-            profile_image = filename
+        filepath = os.path.join(upload_folder, filename)
 
-    # ================= PASSWORD =================
+        # Save new image
+        file.save(filepath)
+
+        # Delete old image
+        if profile_image:
+
+            old_image_path = os.path.join(
+                upload_folder,
+                profile_image
+            )
+
+            if os.path.exists(old_image_path):
+                os.remove(old_image_path)
+
+        profile_image = filename
+
+    # Password update
     if new_password:
+
         hashed_password = bcrypt.hashpw(
             new_password.encode('utf-8'),
             bcrypt.gensalt()
         ).decode('utf-8')
+
     else:
         hashed_password = user['password']
 
-    # ================= UPDATE DB =================
+    # Update database
     cursor.execute("""
         UPDATE users
-        SET name=?, email=?, password=?, profile_image=?
+        SET
+            name=?,
+            email=?,
+            password=?,
+            profile_image=?
         WHERE user_id=?
-    """, (name, email, hashed_password, profile_image, user_id))
+    """, (
+        name,
+        email,
+        hashed_password,
+        profile_image,
+        user_id
+    ))
 
     conn.commit()
+
     cursor.close()
     conn.close()
 
-    # ================= SESSION UPDATE =================
+    # Update session
     session['user_name'] = name
     session['user_email'] = email
 
     flash("Profile updated successfully!", "success")
-    return redirect('/user/profile')
 
+    return redirect('/user/profile')
 
 # =================================================================
 # ABOUT PAGE
@@ -1742,6 +1794,7 @@ def decrease_quantity(pid):
 def remove_from_cart(pid):
 
     if 'user_id' not in session:
+        flash("Please login first!", "danger")
         return redirect('/user-login')
 
     user_id = session['user_id']
@@ -1752,16 +1805,18 @@ def remove_from_cart(pid):
     cursor.execute("""
         DELETE FROM cart
         WHERE user_id = ? AND product_id = ?
-    """, (user_id, pid))
+    """, (
+        user_id,
+        pid
+    ))
 
     conn.commit()
-
-    print("Deleted rows:", cursor.rowcount)  # 🔥 DEBUG
 
     cursor.close()
     conn.close()
 
-    flash("Item removed!", "success")
+    flash("Item removed from cart!", "success")
+
     return redirect('/user/cart')
 # =================================================================
 # ROUTE: CREATE RAZORPAY ORDER
@@ -2216,6 +2271,7 @@ def order_success(order_db_id):
 #-------------------------------------------
 @app.route('/user/my-orders')
 def my_orders():
+
     if 'user_id' not in session:
         flash("Please login!", "danger")
         return redirect('/user-login')
@@ -2240,13 +2296,13 @@ def my_orders():
 
     orders = cursor.fetchall()
 
-    print("LOGGED USER ID:", user_id)
-    print("ORDERS FOUND:", orders)
-
     cursor.close()
     conn.close()
 
-    return render_template("user/my_orders.html", orders=orders)
+    return render_template(
+        "user/my_orders.html",
+        orders=orders
+    )
 #====================================================================================================
 #    CANCEL ORDER
 #====================================================================================================
@@ -2271,10 +2327,18 @@ def cancel_order(order_id):
     order = cursor.fetchone()
 
     if not order:
+        cursor.close()
+        conn.close()
+
         flash("Order not found!", "danger")
+        return redirect('/user/my-orders')
 
     elif order['order_status'] == 'Cancelled':
+        cursor.close()
+        conn.close()
+
         flash("Order already cancelled!", "warning")
+        return redirect('/user/my-orders')
 
     else:
         cursor.execute("""
@@ -2284,13 +2348,13 @@ def cancel_order(order_id):
         """, (order_id, user_id))
 
         conn.commit()
-        flash("Order cancelled successfully!", "success")
 
     cursor.close()
     conn.close()
 
-    return redirect('/user/my-orders')
+    flash("Order cancelled successfully!", "success")
 
+    return redirect('/user/my-orders')
 
 # ----------------------------
 # GENERATE INVOICE PDF
@@ -2704,7 +2768,13 @@ def superadmin_revenue():
         SELECT 
             admin.name AS admin_name,
 
-            COALESCE(SUM(order_items.total), 0) AS revenue
+            COALESCE(SUM(
+                CASE 
+                    WHEN orders.order_id IS NOT NULL 
+                    THEN order_items.total
+                    ELSE 0
+                END
+            ), 0) AS revenue
 
         FROM admin
 
@@ -2716,11 +2786,7 @@ def superadmin_revenue():
 
         LEFT JOIN orders
             ON order_items.order_id = orders.order_id
-
-        WHERE (
-            orders.order_status != 'Cancelled'
-            OR orders.order_id IS NULL
-        )
+            AND orders.order_status != 'Cancelled'
 
         GROUP BY admin.admin_id, admin.name
 
@@ -3581,12 +3647,14 @@ def superadmin_download_sales_excel():
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # SUMMARY
     cursor.execute("""
         SELECT 
             COUNT(DISTINCT order_id) AS total_orders,
             COALESCE(SUM(amount), 0) AS total_revenue
         FROM orders
         WHERE DATE(created_at) BETWEEN ? AND ?
+        AND order_status != 'Cancelled'
     """, (from_date, to_date))
     summary = cursor.fetchone()
 
@@ -3599,48 +3667,87 @@ def superadmin_download_sales_excel():
     cursor.execute("SELECT COUNT(*) AS total_users FROM users")
     users_count = cursor.fetchone()
 
+    # ADMIN SALES
     cursor.execute("""
         SELECT 
             a.admin_id,
             a.name AS admin_name,
             a.email AS admin_email,
             COUNT(DISTINCT o.order_id) AS total_orders,
-            COALESCE(SUM(oi.total), 0) AS total_revenue,
-            COALESCE(SUM(oi.quantity), 0) AS total_items_sold
+
+            COALESCE(SUM(
+                CASE 
+                    WHEN o.order_id IS NOT NULL THEN oi.total
+                    ELSE 0
+                END
+            ), 0) AS total_revenue,
+
+            COALESCE(SUM(
+                CASE 
+                    WHEN o.order_id IS NOT NULL THEN oi.quantity
+                    ELSE 0
+                END
+            ), 0) AS total_items_sold
+
         FROM admin a
+
         LEFT JOIN products p 
             ON a.admin_id = p.admin_id
+
         LEFT JOIN order_items oi 
             ON p.product_id = oi.product_id
+
         LEFT JOIN orders o 
             ON oi.order_id = o.order_id
             AND DATE(o.created_at) BETWEEN ? AND ?
+            AND o.order_status != 'Cancelled'
+
         GROUP BY a.admin_id, a.name, a.email
         ORDER BY total_revenue DESC
     """, (from_date, to_date))
     admin_sales = cursor.fetchall()
 
+    # HIGH SALES
     cursor.execute("""
         SELECT 
             a.name AS admin_name,
             p.product_id,
             p.name AS product_name,
             p.category,
-            COALESCE(SUM(oi.quantity), 0) AS quantity_sold,
-            COALESCE(SUM(oi.total), 0) AS total_sales
+
+            COALESCE(SUM(
+                CASE 
+                    WHEN o.order_id IS NOT NULL THEN oi.quantity
+                    ELSE 0
+                END
+            ), 0) AS quantity_sold,
+
+            COALESCE(SUM(
+                CASE 
+                    WHEN o.order_id IS NOT NULL THEN oi.total
+                    ELSE 0
+                END
+            ), 0) AS total_sales
+
         FROM products p
+
         LEFT JOIN admin a 
             ON p.admin_id = a.admin_id
+
         LEFT JOIN order_items oi 
             ON p.product_id = oi.product_id
+
         LEFT JOIN orders o 
             ON oi.order_id = o.order_id
             AND DATE(o.created_at) BETWEEN ? AND ?
+            AND o.order_status != 'Cancelled'
+
         GROUP BY p.product_id, p.name, p.category, a.name
         ORDER BY total_sales DESC
     """, (from_date, to_date))
     high_sales = cursor.fetchall()
 
+    # LOW SALES
     cursor.execute("""
         SELECT 
             a.name AS admin_name,
@@ -3648,21 +3755,40 @@ def superadmin_download_sales_excel():
             p.name AS product_name,
             p.category,
             p.stock,
-            COALESCE(SUM(oi.quantity), 0) AS quantity_sold,
-            COALESCE(SUM(oi.total), 0) AS total_sales
+
+            COALESCE(SUM(
+                CASE 
+                    WHEN o.order_id IS NOT NULL THEN oi.quantity
+                    ELSE 0
+                END
+            ), 0) AS quantity_sold,
+
+            COALESCE(SUM(
+                CASE 
+                    WHEN o.order_id IS NOT NULL THEN oi.total
+                    ELSE 0
+                END
+            ), 0) AS total_sales
+
         FROM products p
+
         LEFT JOIN admin a 
             ON p.admin_id = a.admin_id
+
         LEFT JOIN order_items oi 
             ON p.product_id = oi.product_id
+
         LEFT JOIN orders o 
             ON oi.order_id = o.order_id
             AND DATE(o.created_at) BETWEEN ? AND ?
+            AND o.order_status != 'Cancelled'
+
         GROUP BY p.product_id, p.name, p.category, p.stock, a.name
         ORDER BY total_sales ASC
     """, (from_date, to_date))
     low_sales = cursor.fetchall()
 
+    # DAILY SALES
     cursor.execute("""
         SELECT 
             DATE(created_at) AS sale_date,
@@ -3670,11 +3796,13 @@ def superadmin_download_sales_excel():
             COALESCE(SUM(amount), 0) AS total_revenue
         FROM orders
         WHERE DATE(created_at) BETWEEN ? AND ?
+        AND order_status != 'Cancelled'
         GROUP BY DATE(created_at)
         ORDER BY sale_date DESC
     """, (from_date, to_date))
     daily_sales = cursor.fetchall()
 
+    # ORDER STATUS - cancelled also shown
     cursor.execute("""
         SELECT 
             order_status,
@@ -3687,6 +3815,7 @@ def superadmin_download_sales_excel():
     """, (from_date, to_date))
     status_report = cursor.fetchall()
 
+    # ALL ORDERS - cancelled also shown
     cursor.execute("""
         SELECT 
             a.name AS admin_name,
@@ -3780,15 +3909,7 @@ def superadmin_download_sales_excel():
     style(ws)
 
     ws = wb.create_sheet("Admin Sales")
-
-    ws.append([
-        "Admin ID",
-        "Admin Name",
-        "Admin Email",
-        "Orders",
-        "Items Sold",
-        "Revenue"
-    ])
+    ws.append(["Admin ID", "Admin Name", "Admin Email", "Orders", "Items Sold", "Revenue"])
 
     for r in admin_sales:
         ws.append([
@@ -3803,15 +3924,7 @@ def superadmin_download_sales_excel():
     style(ws)
 
     ws = wb.create_sheet("High Sales")
-
-    ws.append([
-        "Admin",
-        "Product ID",
-        "Product",
-        "Category",
-        "Qty Sold",
-        "Revenue"
-    ])
+    ws.append(["Admin", "Product ID", "Product", "Category", "Qty Sold", "Revenue"])
 
     for r in high_sales:
         ws.append([
@@ -3826,16 +3939,7 @@ def superadmin_download_sales_excel():
     style(ws)
 
     ws = wb.create_sheet("Low Sales")
-
-    ws.append([
-        "Admin",
-        "Product ID",
-        "Product",
-        "Category",
-        "Stock",
-        "Qty Sold",
-        "Revenue"
-    ])
+    ws.append(["Admin", "Product ID", "Product", "Category", "Stock", "Qty Sold", "Revenue"])
 
     for r in low_sales:
         ws.append([
@@ -3851,12 +3955,7 @@ def superadmin_download_sales_excel():
     style(ws)
 
     ws = wb.create_sheet("Daily Sales")
-
-    ws.append([
-        "Date",
-        "Orders",
-        "Revenue"
-    ])
+    ws.append(["Date", "Orders", "Revenue"])
 
     for r in daily_sales:
         ws.append([
@@ -3868,12 +3967,7 @@ def superadmin_download_sales_excel():
     style(ws)
 
     ws = wb.create_sheet("Order Status")
-
-    ws.append([
-        "Status",
-        "Orders",
-        "Amount"
-    ])
+    ws.append(["Status", "Orders", "Amount"])
 
     for r in status_report:
         ws.append([
@@ -3885,7 +3979,6 @@ def superadmin_download_sales_excel():
     style(ws)
 
     ws = wb.create_sheet("All Orders")
-
     ws.append([
         "Admin Name",
         "Admin Email",
