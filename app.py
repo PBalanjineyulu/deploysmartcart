@@ -3038,12 +3038,21 @@ def admin_sales_report():
             DATE(o.created_at) AS sale_date,
             COALESCE(SUM(oi.total), 0) AS total_sales,
             COUNT(DISTINCT o.order_id) AS total_orders
+
         FROM orders o
-        JOIN order_items oi ON o.order_id = oi.order_id
-        JOIN products p ON oi.product_id = p.product_id
+
+        JOIN order_items oi 
+            ON o.order_id = oi.order_id
+
+        JOIN products p 
+            ON oi.product_id = p.product_id
+
         WHERE p.admin_id = ?
+        AND o.order_status != 'Cancelled'
         {date_filter}
+
         GROUP BY DATE(o.created_at)
+
         ORDER BY sale_date
     """, params)
 
@@ -3056,10 +3065,17 @@ def admin_sales_report():
         SELECT 
             COALESCE(SUM(oi.total), 0) AS total_revenue,
             COUNT(DISTINCT o.order_id) AS total_orders
+
         FROM orders o
-        JOIN order_items oi ON o.order_id = oi.order_id
-        JOIN products p ON oi.product_id = p.product_id
+
+        JOIN order_items oi 
+            ON o.order_id = oi.order_id
+
+        JOIN products p 
+            ON oi.product_id = p.product_id
+
         WHERE p.admin_id = ?
+        AND o.order_status != 'Cancelled'
         {date_filter}
     """, params)
 
@@ -3072,12 +3088,19 @@ def admin_sales_report():
 
         cursor.execute(f"""
             SELECT COUNT(DISTINCT o.order_id) AS total
+
             FROM orders o
-            JOIN order_items oi ON o.order_id = oi.order_id
-            JOIN products p ON oi.product_id = p.product_id
+
+            JOIN order_items oi 
+                ON o.order_id = oi.order_id
+
+            JOIN products p 
+                ON oi.product_id = p.product_id
+
             WHERE p.admin_id = ?
             {date_filter}
             AND o.order_status = ?
+
         """, [admin_id, from_date, to_date, status])
 
         result = cursor.fetchone()
@@ -3116,7 +3139,10 @@ def admin_sales_report():
 
         AND (
             o.order_id IS NULL
-            OR DATE(o.created_at) BETWEEN ? AND ?
+            OR (
+                DATE(o.created_at) BETWEEN ? AND ?
+                AND o.order_status != 'Cancelled'
+            )
         )
 
         GROUP BY 
@@ -3141,9 +3167,13 @@ def admin_sales_report():
             product_id,
             name AS product_name,
             stock
+
         FROM products
+
         WHERE admin_id = ?
+
         ORDER BY stock ASC
+
         LIMIT 5
     """, (admin_id,))
 
@@ -3157,9 +3187,13 @@ def admin_sales_report():
             product_id,
             name AS product_name,
             stock
+
         FROM products
+
         WHERE admin_id = ?
+
         ORDER BY stock DESC
+
         LIMIT 5
     """, (admin_id,))
 
