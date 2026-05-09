@@ -3977,12 +3977,43 @@ def demo_user_login():
 
     user = cursor.fetchone()
 
-    cursor.close()
-    conn.close()
-
     if not user:
+        cursor.close()
+        conn.close()
+
         flash("Demo account not found!", "danger")
         return redirect('/user-login')
+
+    demo_user_id = user['user_id']
+
+    # CLEAR OLD DEMO DATA
+    cursor.execute(
+        "DELETE FROM cart WHERE user_id=?",
+        (demo_user_id,)
+    )
+
+    cursor.execute(
+        "DELETE FROM addresses WHERE user_id=?",
+        (demo_user_id,)
+    )
+
+    cursor.execute("""
+        DELETE FROM order_items
+        WHERE order_id IN (
+            SELECT order_id FROM orders
+            WHERE user_id=?
+        )
+    """, (demo_user_id,))
+
+    cursor.execute(
+        "DELETE FROM orders WHERE user_id=?",
+        (demo_user_id,)
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
 
     session['user_id'] = user['user_id']
     session['user_name'] = user['name']
