@@ -11,9 +11,8 @@
     --text-muted: #64748b;
 }
 
-/* BACKGROUND (ANIMATED GRADIENT) */
 .login-wrapper {
-     min-height: calc(100vh - 70px); /* navbar height */
+    min-height: calc(100vh - 70px);
     display: flex;
     align-items: flex-start;
     background: linear-gradient(-45deg, #1e3a8a, #4f46e5, #0ea5e9, #6366f1);
@@ -27,7 +26,6 @@
     100% { background-position: 0% 50%; }
 }
 
-/* LEFT PANEL */
 .login-left {
     color: white;
     padding: 60px 50px;
@@ -44,15 +42,13 @@
     padding-left: 18px;
 }
 
-/* RIGHT PANEL */
 .login-right {
     display: flex;
     justify-content: center;
-    align-items: flex-start;   /* 👈 important */
-    padding: 120px 15px 30px;  /* 👈 moves card DOWN */
+    align-items: flex-start;
+    padding: 120px 15px 30px;
 }
 
-/* CARD */
 .login-card {
     width: 100%;
     max-width: 420px;
@@ -80,7 +76,6 @@
     }
 }
 
-/* TEXT */
 .login-title {
     font-weight: 800;
     text-align: center;
@@ -92,7 +87,6 @@
     margin-bottom: 25px;
 }
 
-/* INPUT */
 .form-group {
     position: relative;
 }
@@ -108,7 +102,6 @@
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
 }
 
-/* FLOAT LABEL */
 .form-group label {
     position: absolute;
     top: -8px;
@@ -119,7 +112,6 @@
     color: var(--text-muted);
 }
 
-/* PASSWORD ICON */
 .password-wrapper {
     position: relative;
 }
@@ -133,7 +125,6 @@
     color: var(--text-muted);
 }
 
-/* BUTTON */
 .btn-primary {
     background: linear-gradient(135deg, var(--accent-dark), var(--accent));
     border: none;
@@ -148,7 +139,32 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
-/* LINKS */
+.demo-btn {
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 700;
+    color: #1e3a8a;
+    border: 2px solid #4f46e5;
+    background: #eef2ff;
+    transition: 0.3s;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+}
+
+.demo-btn:hover {
+    background: #4f46e5;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.demo-note {
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+    margin-top: 8px;
+}
+
 .signup-link {
     text-align: center;
     margin-top: 12px;
@@ -161,7 +177,6 @@
     text-decoration: none;
 }
 
-/* RESPONSIVE */
 @media (max-width: 992px) {
     .login-left {
         display: none;
@@ -172,6 +187,10 @@
 
     .login-wrapper {
         padding: 20px 10px;
+    }
+
+    .login-right {
+        padding: 60px 10px 30px;
     }
 
     .login-card {
@@ -187,10 +206,12 @@
         padding: 12px;
     }
 
-    .btn-primary {
+    .btn-primary,
+    .demo-btn {
         padding: 11px;
     }
 }
+
 body {
     margin: 0 !important;
 }
@@ -205,7 +226,6 @@ body {
 }
 
 </style>
-
 {% endblock %}
 
 {% block content %}
@@ -213,52 +233,53 @@ body {
 <div class="container-fluid login-wrapper">
     <div class="row w-100">
 
-        <!-- LEFT SIDE -->
         <div class="col-lg-6 login-left d-none d-lg-flex">
             <div>
                 <h2>Welcome to SmartCart 🛒</h2>
                 <p class="mt-3">
-                    Manage products, categories, and inventory with ease.
+                    Shop products, manage cart, place orders, and download invoices easily.
                 </p>
 
                 <ul class="mt-4">
-                    <li>✔ Fast Performance</li>
-                    <li>✔ Secure System</li>
-                    <li>✔ Fully Responsive</li>
+                    <li>✔ Live Product Browsing</li>
+                    <li>✔ Secure Cart & Orders</li>
+                    <li>✔ Fully Responsive Design</li>
                 </ul>
             </div>
         </div>
 
-        <!-- RIGHT SIDE -->
         <div class="col-lg-6 login-right">
 
             <div class="login-card">
 
                 <h3 class="login-title">User Login</h3>
                 <p class="login-subtitle">Access your dashboard securely</p>
-                
 
                 <form method="POST" action="/user-login">
 
-                    <!-- EMAIL -->
                     <div class="mb-3 form-group">
                         <label>Email</label>
                         <input type="email" name="email" class="form-control" required>
                     </div>
 
-                    <!-- PASSWORD -->
                     <div class="mb-3 form-group password-wrapper">
                         <label>Password</label>
                         <input type="password" id="password" name="password" class="form-control" required>
                         <span class="toggle-password" onclick="togglePassword()">👁</span>
                     </div>
 
-                    <!-- BUTTON -->
                     <button type="submit" class="btn btn-primary w-100">
                         Login
                     </button>
 
-                    <!-- LINKS -->
+                    <a href="/demo-user-login" class="demo-btn mt-3">
+                        🚀 View Live Demo
+                    </a>
+
+                    <div class="demo-note">
+                        Recruiters can explore SmartCart without OTP or registration.
+                    </div>
+
                     <div class="signup-link">
                         <a href="/user-forgot-password">Forgot Password?</a>
                     </div>

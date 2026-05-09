@@ -3962,5 +3962,35 @@ def superadmin_view_product(product_id):
 
     return render_template("superadmin/view_product.html", product=product)
 
+
+
+@app.route('/demo-user-login')
+def demo_user_login():
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM users WHERE email=?",
+        ("smartcartdemo@gmail.com",)
+    )
+
+    user = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not user:
+        flash("Demo account not found!", "danger")
+        return redirect('/user-login')
+
+    session['user_id'] = user['user_id']
+    session['user_name'] = user['name']
+    session['user_email'] = user['email']
+
+    flash("Welcome to SmartCart Live Demo!", "success")
+
+    return redirect('/user-dashboard')
+
 if __name__=="__main__":
     app.run(debug=True)
