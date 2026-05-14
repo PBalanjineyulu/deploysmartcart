@@ -4203,6 +4203,26 @@ def demo_user_login():
         (demo_user_id,)
     )
 
+    # CLEAR OLD DEMO CART
+    cursor.execute(
+        "DELETE FROM cart WHERE user_id=?",
+        (demo_user_id,)
+    )
+
+    # CLEAR OLD DEMO ORDERS
+    cursor.execute("""
+        DELETE FROM order_items
+        WHERE order_id IN (
+            SELECT order_id FROM orders
+            WHERE user_id=?
+        )
+    """, (demo_user_id,))
+
+    cursor.execute(
+        "DELETE FROM orders WHERE user_id=?",
+        (demo_user_id,)
+    )
+
     # ADD DEFAULT DEMO ADDRESS
     cursor.execute("""
         INSERT INTO addresses
