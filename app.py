@@ -48,13 +48,14 @@ def safe_send_mail(message, otp=None, label="MAIL"):
     try:
         mail.send(message)
         print(f"{label} SENT SUCCESSFULLY")
+        return True
 
     except Exception as e:
 
         print(f"{label} FAILED")
         print("ERROR:", str(e))
 
-        raise e
+        return False
 
 
 app.config['PRODUCT_UPLOAD_FOLDER'] = 'static/uploads/product_images'
@@ -125,9 +126,13 @@ def admin_signup():
         recipients=[email]
     )
     message.body = f"Your OTP for SmartCart Admin Registration is: {otp}"
-    safe_send_mail(message, otp, "ADMIN SIGNUP OTP")
+    mail_status = safe_send_mail(message, otp, "ADMIN SIGNUP OTP")
 
-    flash("OTP sent successfully to your email!", "success")
+    if mail_status:
+        flash("OTP sent successfully to your email!", "success")
+    else:
+        flash("OTP mail failed!", "warning")
+
     return redirect('/verify-otp')
 
 
