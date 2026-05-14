@@ -4175,7 +4175,7 @@ def demo_user_login():
 
     user = cursor.fetchone()
 
-    # IF DEMO USER NOT FOUND
+    # DEMO USER NOT FOUND
     if not user:
 
         cursor.close()
@@ -4209,19 +4209,121 @@ def demo_user_login():
             user_id,
             full_name,
             phone,
-            address,
+            address_line1,
+            address_line2,
             city,
-            pincode
+            state,
+            pincode,
+            country
         )
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         demo_user_id,
         "SmartCart Demo User",
         "9876543210",
         "Madhapur, HITEC City",
+        "Near Cyber Towers",
         "Hyderabad",
-        "500081"
+        "Telangana",
+        "500081",
+        "India"
     ))
+
+    conn.commit()
+
+    # CLEAR OLD SESSION
+    session.clear()
+
+    # LOGIN DEMO USER
+    session['user_id'] = user['user_id']
+    session['user_name'] = user['name']
+    session['user_email'] = user['email']
+
+    # DEMO FLAG
+    session['is_demo'] = True
+
+    cursor.close()
+    conn.close()
+
+    # SUCCESS MESSAGE
+    flash(
+        "🚀 Recruiters can explore SmartCart without OTP or registration.",
+        "success"
+    )
+
+    # WARNING MESSAGE
+    flash(
+        "⚠ Demo Account: Please don't change demo credentials or sensitive settings.",
+        "warning"
+    )
+
+    return redirect('/user-dashboard')
+
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # GET DEMO USER
+    cursor.execute(
+        "SELECT * FROM users WHERE email=?",
+        ("smartcartdemo@gmail.com",)
+    )
+
+    user = cursor.fetchone()
+
+    # IF DEMO USER NOT FOUND
+    if not user:
+
+        cursor.close()
+        conn.close()
+
+        flash(
+            "Demo account not found!",
+            "danger"
+        )
+
+        return redirect('/user-login')
+
+    demo_user_id = user['user_id']
+
+    # =========================================
+    # CLEAR OLD DEMO ADDRESSES
+    # =========================================
+
+    cursor.execute(
+        "DELETE FROM addresses WHERE user_id=?",
+        (demo_user_id,)
+    )
+
+    # =========================================
+    # ADD DEFAULT DEMO ADDRESS
+    # =========================================
+
+    cursor.execute("""
+    INSERT INTO addresses
+    (
+        user_id,
+        full_name,
+        phone,
+        address_line1,
+        address_line2,
+        city,
+        state,
+        pincode,
+        country
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+""", (
+    demo_user_id,
+    "SmartCart Demo User",
+    "9876543210",
+    "Madhapur, HITEC City",
+    "Near Cyber Towers",
+    "Hyderabad",
+    "Telangana",
+    "500081",
+    "India"
+))
 
     conn.commit()
 
