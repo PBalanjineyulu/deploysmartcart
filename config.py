@@ -17,8 +17,7 @@ MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 587
 MAIL_USE_TLS = True
 MAIL_USERNAME = 'smartcartcompany1@gmail.com'
-MAIL_PASSWORD = 'mfnt mlzq rfse gzlt'
-
+MAIL_PASSWORD = 'mfntmlzqrfsegzlt'
 
 # -------------------------
 # RAZORPAY CONFIG
