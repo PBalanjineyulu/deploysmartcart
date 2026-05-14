@@ -250,6 +250,15 @@
             height: 120px;
         }
     }
+    .demo-warning-marquee{
+    background: linear-gradient(90deg,#dc2626,#ea580c);
+    color: white;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
 </style>
 {% endblock %}
 
@@ -270,6 +279,16 @@
                         </div>
 
                         <div class="content-card-body">
+                            {% if session.get('is_demo') %}
+                            <div class="demo-warning-marquee">
+                                <marquee>
+                                    ⚠ Demo Account Notice →
+                                    Please do not change demo credentials, email, or sensitive settings.
+                                    This account is shared for recruiter live demo purposes.
+                                </marquee>
+                            </div>
+                            {% endif %}
+
 
                             <form method="POST" action="/user/profile" enctype="multipart/form-data">
                                 <div class="row g-4">

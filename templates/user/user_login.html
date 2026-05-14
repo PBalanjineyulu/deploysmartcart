@@ -4,227 +4,242 @@
 
 {% block css %}
 <style>
-
-:root {
-    --accent: #4f46e5;
-    --accent-dark: #1e3a8a;
-    --text-muted: #64748b;
-}
-
-.login-wrapper {
-    min-height: calc(100vh - 70px);
-    display: flex;
-    align-items: flex-start;
-    background: linear-gradient(-45deg, #1e3a8a, #4f46e5, #0ea5e9, #6366f1);
-    background-size: 400% 400%;
-    animation: gradientMove 10s ease infinite;
-}
-
-@keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.login-left {
-    color: white;
-    padding: 60px 50px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.login-left h2 {
-    font-weight: 800;
-}
-
-.login-left ul {
-    padding-left: 18px;
-}
-
-.login-right {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 120px 15px 30px;
-}
-
-.login-card {
-    width: 100%;
-    max-width: 420px;
-    padding: 35px 28px;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-    animation: fadeSlide 0.8s ease;
-}
-
-.login-card:hover {
-    transform: translateY(-3px);
-    transition: 0.3s;
-}
-
-@keyframes fadeSlide {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
+    :root {
+        --accent: #4f46e5;
+        --accent-dark: #1e3a8a;
+        --text-muted: #64748b;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.login-title {
-    font-weight: 800;
-    text-align: center;
-}
-
-.login-subtitle {
-    text-align: center;
-    color: var(--text-muted);
-    margin-bottom: 25px;
-}
-
-.form-group {
-    position: relative;
-}
-
-.form-control {
-    border-radius: 12px;
-    padding: 14px 12px;
-    font-size: 14px;
-}
-
-.form-control:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-}
-
-.form-group label {
-    position: absolute;
-    top: -8px;
-    left: 10px;
-    background: white;
-    padding: 0 6px;
-    font-size: 12px;
-    color: var(--text-muted);
-}
-
-.password-wrapper {
-    position: relative;
-}
-
-.toggle-password {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: var(--text-muted);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-    border: none;
-    border-radius: 12px;
-    padding: 12px;
-    font-weight: 600;
-    transition: 0.3s;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
-
-.demo-btn {
-    border-radius: 12px;
-    padding: 12px;
-    font-weight: 700;
-    color: #1e3a8a;
-    border: 2px solid #4f46e5;
-    background: #eef2ff;
-    transition: 0.3s;
-    text-decoration: none;
-    display: block;
-    text-align: center;
-}
-
-.demo-btn:hover {
-    background: #4f46e5;
-    color: white;
-    transform: translateY(-2px);
-}
-
-.demo-note {
-    font-size: 12px;
-    color: #64748b;
-    text-align: center;
-    margin-top: 8px;
-}
-
-.signup-link {
-    text-align: center;
-    margin-top: 12px;
-    font-size: 0.9rem;
-}
-
-.signup-link a {
-    color: var(--accent);
-    font-weight: 600;
-    text-decoration: none;
-}
-
-@media (max-width: 992px) {
-    .login-left {
-        display: none;
-    }
-}
-
-@media (max-width: 576px) {
 
     .login-wrapper {
-        padding: 20px 10px;
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: flex-start;
+        background: linear-gradient(-45deg, #1e3a8a, #4f46e5, #0ea5e9, #6366f1);
+        background-size: 400% 400%;
+        animation: gradientMove 10s ease infinite;
+    }
+
+    @keyframes gradientMove {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    .login-left {
+        color: white;
+        padding: 60px 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .login-left h2 {
+        font-weight: 800;
+    }
+
+    .login-left ul {
+        padding-left: 18px;
     }
 
     .login-right {
-        padding: 60px 10px 30px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 120px 15px 30px;
     }
 
     .login-card {
-        padding: 22px;
-        border-radius: 14px;
+        width: 100%;
+        max-width: 420px;
+        padding: 35px 28px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        animation: fadeSlide 0.8s ease;
+    }
+
+    .login-card:hover {
+        transform: translateY(-3px);
+        transition: 0.3s;
+    }
+
+    @keyframes fadeSlide {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .login-title {
-        font-size: 1.5rem;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .login-subtitle {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 25px;
+    }
+
+    .form-group {
+        position: relative;
     }
 
     .form-control {
+        border-radius: 12px;
+        padding: 14px 12px;
+        font-size: 14px;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+
+    .form-group label {
+        position: absolute;
+        top: -8px;
+        left: 10px;
+        background: white;
+        padding: 0 6px;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-muted);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+        border: none;
+        border-radius: 12px;
         padding: 12px;
+        font-weight: 600;
+        transition: 0.3s;
     }
 
-    .btn-primary,
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
     .demo-btn {
-        padding: 11px;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 700;
+        color: #1e3a8a;
+        border: 2px solid #4f46e5;
+        background: #eef2ff;
+        transition: 0.3s;
+        text-decoration: none;
+        display: block;
+        text-align: center;
     }
-}
 
-body {
-    margin: 0 !important;
-}
+    .demo-btn:hover {
+        background: #4f46e5;
+        color: white;
+        transform: translateY(-2px);
+    }
 
-.container,
-.container-fluid {
-    padding: 0 !important;
-}
+    .demo-note {
+        font-size: 12px;
+        color: #64748b;
+        text-align: center;
+        margin-top: 8px;
+    }
 
-.row {
-    margin: 0 !important;
-}
+    .signup-link {
+        text-align: center;
+        margin-top: 12px;
+        font-size: 0.9rem;
+    }
 
+    .signup-link a {
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    @media (max-width: 992px) {
+        .login-left {
+            display: none;
+        }
+    }
+
+    @media (max-width: 576px) {
+
+        .login-wrapper {
+            padding: 20px 10px;
+        }
+
+        .login-right {
+            padding: 60px 10px 30px;
+        }
+
+        .login-card {
+            padding: 22px;
+            border-radius: 14px;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+        }
+
+        .form-control {
+            padding: 12px;
+        }
+
+        .btn-primary,
+        .demo-btn {
+            padding: 11px;
+        }
+    }
+
+    body {
+        margin: 0 !important;
+    }
+
+    .container,
+    .container-fluid {
+        padding: 0 !important;
+    }
+
+    .row {
+        margin: 0 !important;
+    }
+    .demo-marquee{
+    background: linear-gradient(90deg,#1e3a8a,#4f46e5);
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
 </style>
 {% endblock %}
 
@@ -251,6 +266,26 @@ body {
         <div class="col-lg-6 login-right">
 
             <div class="login-card">
+                <!-- DEMO MARQUEE -->
+                <div class="demo-marquee">
+                    <marquee>
+                        🚀 Recruiters can explore SmartCart without OTP or registration.
+                        Use demo credentials or click Live Demo.
+                    </marquee>
+                </div>
+
+                <!-- DEMO CREDENTIALS -->
+                <div class="demo-credentials">
+                    <strong>Demo Credentials</strong><br>
+                    Email: smartcartdemo@gmail.com<br>
+                    Password: demo@123
+                </div>
+
+                <h3 class="login-title">User Login</h3>
+
+                <p class="login-subtitle">
+                    Access your dashboard securely
+                </p>
 
                 <h3 class="login-title">User Login</h3>
                 <p class="login-subtitle">Access your dashboard securely</p>
@@ -272,8 +307,8 @@ body {
                         Login
                     </button>
 
-                    <a href="/demo-user-login" class="demo-btn mt-3">
-                        🚀 View Live Demo
+                    <a href="/demo-user-login" class="demo-btn">
+                        🚀 Explore Live Demo
                     </a>
 
                     <div class="demo-note">
@@ -302,10 +337,10 @@ body {
 </div>
 
 <script>
-function togglePassword() {
-    const input = document.getElementById("password");
-    input.type = input.type === "password" ? "text" : "password";
-}
+    function togglePassword() {
+        const input = document.getElementById("password");
+        input.type = input.type === "password" ? "text" : "password";
+    }
 </script>
 
 {% endblock %}

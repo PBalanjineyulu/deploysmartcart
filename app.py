@@ -1125,40 +1125,77 @@ def user_verify_otp_post():
 # =================================================================
 # ROUTE 02: USER LOGIN
 # =================================================================
+# =================================================================
+# ROUTE 02: USER LOGIN
+# =================================================================
 @app.route('/user-login', methods=['GET', 'POST'])
 def user_login():
-        # 🔥 ADD THIS
+
+    # ALREADY LOGGED IN
     if 'user_id' in session:
         return redirect('/user-dashboard')
 
+    # SHOW LOGIN PAGE
     if request.method == 'GET':
-        return render_template("user/user_login.html", hide_user_nav=True)
+        return render_template(
+            "user/user_login.html",
+            hide_user_nav=True
+        )
 
+    # GET FORM DATA
     email = request.form['email']
     password = request.form['password']
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM users WHERE email=?", (email,))
+    cursor.execute(
+        "SELECT * FROM users WHERE email=?",
+        (email,)
+    )
+
     user = cursor.fetchone()
 
     cursor.close()
     conn.close()
 
+    # EMAIL NOT FOUND
     if not user:
-        flash("Email not found! Please register.", "danger")
+
+        flash(
+            "Email not found! Please register.",
+            "danger"
+        )
+
         return redirect('/user-login')
 
-    if not bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
-        flash("Incorrect password!", "danger")
+    # PASSWORD CHECK
+    if not bcrypt.checkpw(
+        password.encode('utf-8'),
+        user['password'].encode('utf-8')
+    ):
+
+        flash(
+            "Incorrect password!",
+            "danger"
+        )
+
         return redirect('/user-login')
 
+    # LOGIN SESSION
     session['user_id'] = user['user_id']
     session['user_name'] = user['name']
     session['user_email'] = user['email']
 
-    flash("Login successful!", "success")
+    # DEMO USER
+    if email == "smartcartdemo@gmail.com":
+        session['is_demo'] = True
+
+    flash(
+        "Login successful!",
+        "success"
+    )
+
     return redirect('/user-dashboard')
 # =================================================================
 # ROUTE 03: USER DASHBOARD
@@ -4123,12 +4160,14 @@ def superadmin_view_product(product_id):
 
 
 
+
 @app.route('/demo-user-login')
 def demo_user_login():
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # GET DEMO USER
     cursor.execute(
         "SELECT * FROM users WHERE email=?",
         ("smartcartdemo@gmail.com",)
@@ -4136,51 +4175,82 @@ def demo_user_login():
 
     user = cursor.fetchone()
 
+    # IF DEMO USER NOT FOUND
     if not user:
+
         cursor.close()
         conn.close()
 
-        flash("Demo account not found!", "danger")
+        flash(
+            "Demo account not found!",
+            "danger"
+        )
+
         return redirect('/user-login')
 
     demo_user_id = user['user_id']
 
-    # CLEAR OLD DEMO DATA
-    cursor.execute(
-        "DELETE FROM cart WHERE user_id=?",
-        (demo_user_id,)
-    )
+    # =========================================
+    # CLEAR OLD DEMO ADDRESSES
+    # =========================================
 
     cursor.execute(
         "DELETE FROM addresses WHERE user_id=?",
         (demo_user_id,)
     )
 
-    cursor.execute("""
-        DELETE FROM order_items
-        WHERE order_id IN (
-            SELECT order_id FROM orders
-            WHERE user_id=?
-        )
-    """, (demo_user_id,))
+    # =========================================
+    # ADD DEFAULT DEMO ADDRESS
+    # =========================================
 
-    cursor.execute(
-        "DELETE FROM orders WHERE user_id=?",
-        (demo_user_id,)
-    )
+    cursor.execute("""
+        INSERT INTO addresses
+        (
+            user_id,
+            full_name,
+            phone,
+            address,
+            city,
+            pincode
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        demo_user_id,
+        "SmartCart Demo User",
+        "9876543210",
+        "Madhapur, HITEC City",
+        "Hyderabad",
+        "500081"
+    ))
 
     conn.commit()
 
-    cursor.close()
-    conn.close()
+    # CLEAR OLD SESSION
+    session.clear()
 
+    # LOGIN DEMO USER
     session['user_id'] = user['user_id']
     session['user_name'] = user['name']
     session['user_email'] = user['email']
 
-    flash("Welcome to SmartCart Live Demo!", "success")
+    # DEMO FLAG
+    session['is_demo'] = True
+
+    cursor.close()
+    conn.close()
+
+    # SUCCESS MESSAGE
+    flash(
+        "🚀 Recruiters can explore SmartCart without OTP or registration.",
+        "success"
+    )
+
+    # WARNING MESSAGE
+    flash(
+        "⚠ Demo Account: Please don't change demo credentials or sensitive settings.",
+        "warning"
+    )
 
     return redirect('/user-dashboard')
-
 if __name__=="__main__":
     app.run(debug=True)
