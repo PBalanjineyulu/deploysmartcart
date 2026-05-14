@@ -232,14 +232,53 @@
     .row {
         margin: 0 !important;
     }
-    .demo-marquee{
-    background: linear-gradient(90deg,#1e3a8a,#4f46e5);
-    color: white;
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    font-weight: 600;
-}
+
+    .demo-marquee {
+        background: linear-gradient(90deg, #1e3a8a, #4f46e5);
+        color: white;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+
+    .left-demo-box {
+        margin-top: 28px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(10px);
+        padding: 20px;
+        border-radius: 16px;
+        max-width: 360px;
+        color: white;
+    }
+
+    .left-demo-box h5 {
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .left-demo-box p {
+        margin-bottom: 12px;
+        color: #f8fafc;
+    }
+
+    .left-demo-btn {
+        display: inline-block;
+        margin-top: 10px;
+        background: white;
+        color: #1e3a8a;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .left-demo-btn:hover {
+        background: #eef2ff;
+        transform: translateY(-2px);
+    }
 </style>
 {% endblock %}
 
@@ -260,8 +299,28 @@
                     <li>✔ Secure Cart & Orders</li>
                     <li>✔ Fully Responsive Design</li>
                 </ul>
+                <div class="left-demo-box">
+
+                    <h5>🚀 Demo Credentials</h5>
+
+                    <p>
+                        <strong>Email:</strong><br>
+                        smartcartdemo@gmail.com
+                    </p>
+
+                    <p>
+                        <strong>Password:</strong><br>
+                        demo@123
+                    </p>
+
+                    <a href="/demo-user-login" class="left-demo-btn">
+                        Explore Live Demo
+                    </a>
+
+                </div>
             </div>
         </div>
+
 
         <div class="col-lg-6 login-right">
 
@@ -274,14 +333,9 @@
                     </marquee>
                 </div>
 
-                <!-- DEMO CREDENTIALS -->
-                <div class="demo-credentials">
-                    <strong>Demo Credentials</strong><br>
-                    Email: smartcartdemo@gmail.com<br>
-                    Password: demo@123
-                </div>
 
-               
+
+
 
                 <h3 class="login-title">User Login</h3>
                 <p class="login-subtitle">Access your dashboard securely</p>

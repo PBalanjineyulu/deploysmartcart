@@ -1452,6 +1452,7 @@ def user_profile():
 # ROUTE : UPDATE USER PROFILE
 # =================================================================
 @app.route('/user/profile', methods=['POST'])
+@app.route('/user/profile', methods=['POST'])
 def user_profile_update():
 
     if 'user_id' not in session:
@@ -1475,6 +1476,12 @@ def user_profile_update():
     )
 
     user = cursor.fetchone()
+
+    # PROTECT DEMO ACCOUNT
+    if session.get('is_demo'):
+
+        email = user['email']
+        hashed_password = user['password']
 
     # Default old image
     profile_image = user['profile_image']
@@ -1512,14 +1519,15 @@ def user_profile_update():
         profile_image = filename
 
     # Password update
-    if new_password:
+    if new_password and not session.get('is_demo'):
 
         hashed_password = bcrypt.hashpw(
             new_password.encode('utf-8'),
             bcrypt.gensalt()
         ).decode('utf-8')
 
-    else:
+    elif not session.get('is_demo'):
+
         hashed_password = user['password']
 
     # Update database
@@ -1551,7 +1559,6 @@ def user_profile_update():
     flash("Profile updated successfully!", "success")
 
     return redirect('/user/profile')
-
 # =================================================================
 # ABOUT PAGE
 # =================================================================

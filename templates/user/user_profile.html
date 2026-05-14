@@ -250,15 +250,16 @@
             height: 120px;
         }
     }
-    .demo-warning-marquee{
-    background: linear-gradient(90deg,#dc2626,#ea580c);
-    color: white;
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
+
+    .demo-warning-marquee {
+        background: linear-gradient(90deg, #dc2626, #ea580c);
+        color: white;
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
 </style>
 {% endblock %}
 
@@ -321,20 +322,35 @@
 
                                             <div class="col-12">
                                                 <label class="form-label">Email</label>
+
                                                 <input type="email" name="email" class="form-control"
                                                     value="{{ user.email }}" placeholder="Enter your email address"
-                                                    required>
+                                                    required {% if session.get('is_demo') %} readonly {% endif %}>
+
+                                                {% if session.get('is_demo') %}
+                                                <div class="form-hint text-danger fw-bold">
+                                                    🔒 Demo email cannot be changed.
+                                                </div>
+                                                {% endif %}
                                             </div>
 
                                             <div class="col-12">
                                                 <label class="form-label">New Password</label>
+
                                                 <input type="password" name="password" class="form-control"
-                                                    placeholder="Leave blank if you do not want to change password">
+                                                    placeholder="Leave blank if you do not want to change password" {%
+                                                    if session.get('is_demo') %} disabled {% endif %}>
+
+                                                {% if session.get('is_demo') %}
+                                                <div class="form-hint text-danger fw-bold">
+                                                    🔒 Demo password cannot be changed.
+                                                </div>
+                                                {% else %}
                                                 <div class="form-hint">
                                                     Keep this empty if you want to retain your current password.
                                                 </div>
+                                                {% endif %}
                                             </div>
-
                                         </div>
                                     </div>
 
